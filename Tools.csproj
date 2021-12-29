@@ -4,21 +4,24 @@
     <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	<PackageOutputPath>..\nupkg</PackageOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="System.Data\DbConnectionPooling.cs" />
+    <Compile Remove="Tools\RedisConnectionPool.cs" />
     <Compile Remove="Tools\StringFormatWith.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.0.123" />
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+    <!--<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />-->
 	<PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.0" />
 	<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="StackExchange.Redis" Version="2.2.88" />
+    <!--<PackageReference Include="StackExchange.Redis" Version="2.2.88" />-->
   </ItemGroup>
 
 </Project>

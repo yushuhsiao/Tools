@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	<PackageOutputPath>..\nupkg</PackageOutputPath>
@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <Compile Remove="System.Data\DbConnectionPooling.cs" />
-    <Compile Remove="Tools\RedisConnectionPool.cs" />
     <Compile Remove="Tools\StringFormatWith.cs" />
   </ItemGroup>
 
@@ -21,7 +20,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <!--<PackageReference Include="StackExchange.Redis" Version="2.2.88" />-->
+    <PackageReference Include="StackExchange.Redis" Version="2.2.88" />
   </ItemGroup>
 
 </Project>

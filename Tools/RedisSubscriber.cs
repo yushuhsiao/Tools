@@ -9,7 +9,7 @@ namespace StackExchange.Redis
 {
     public sealed class RedisSubscriber : RedisConnectionExtensions.RedisConnectionBase, IDisposable
     {
-        public delegate void MessageHandler(string, string);
+        public delegate void MessageHandler(string channel, string message);
         private ISubscriber subscriber;
         internal bool IsAlive => subscriber != null;
         private List<Handler> handlers1 = new List<Handler>();

@@ -16,17 +16,15 @@ namespace StackExchange.Redis
         private Handler[] handlers2 = new Handler[0];
 
         internal RedisSubscriber(IServiceProvider service, ISubscriber subscriber, string configuration, double timeout)
-            : base(configuration, timeout)
+            : base(service?.GetService<ILogger<RedisConnection>>(), configuration, timeout)
         {
             this.subscriber = subscriber;
-            this._logger = service?.GetService<ILogger<RedisConnection>>();
         }
 
         private RedisSubscriber(RedisSubscriber src)
-            : base(src.configuration, src.timeout)
+            : base(src._logger, src.configuration, src.timeout)
         {
             this.subscriber = ConnectionMultiplexer.Connect(this.configuration).GetSubscriber();
-            this._logger = src._logger;
             lock (this.handlers1)
             {
                 lock (src.handlers1)

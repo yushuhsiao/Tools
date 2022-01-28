@@ -12,14 +12,12 @@ namespace StackExchange.Redis
     {
         internal static readonly RedisConnection _null_item = new RedisConnection(null, null, null, 0);
 
-        public bool IsAlive => false == object.ReferenceEquals(this, _null_item) && _database != null;
         private IDatabase _database;
 
         internal RedisConnection(IServiceProvider service, IDatabase database, string configuration, double timeout)
-            : base(configuration, timeout)
+            : base(service?.GetService<ILogger<RedisConnection>>(), configuration, timeout)
         {
             this._database = database;
-            this._logger = service?.GetService<ILogger<RedisConnection>>();
         }
 
 
@@ -41,15 +39,26 @@ namespace StackExchange.Redis
                 _database = null;
         }
 
+        public bool IsAlive => this._GetDatabase(out var database);
+
+        private bool _GetDatabase(out IDatabase database)
+        {
+            database = null;
+            if (object.ReferenceEquals(this, _null_item))
+                return false;
+            database = _database;
+            return database != null;
+        }
+
 
 
         public async Task<T> GetObjectAsync<T>(RedisKey key)
         {
-            if (this.IsAlive)
+            if (this._GetDatabase(out var database))
             {
                 try
                 {
-                    RedisValue value = await this._database.StringGetAsync(key);
+                    RedisValue value = await database.StringGetAsync(key);
                     if (value.HasValue)
                     {
                         try
@@ -73,12 +82,12 @@ namespace StackExchange.Redis
 
         public async Task<bool> SetObjectAsync<T>(RedisKey key, T obj, TimeSpan? expiry = null, When when = When.Always)
         {
-            if (this.IsAlive)
+            if (this._GetDatabase(out var database))
             {
                 RedisValue value = JsonConvert.SerializeObject(obj);
                 try
                 {
-                    return await this._database.StringSetAsync(key, value, expiry: expiry, when: when);
+                    return await database.StringSetAsync(key, value, expiry: expiry, when: when);
                 }
                 catch (Exception ex)
                 {
@@ -91,11 +100,11 @@ namespace StackExchange.Redis
 
         public async Task<string> StringGetAsync(RedisKey key, CommandFlags flags = CommandFlags.None)
         {
-            if (this.IsAlive)
+            if (this._GetDatabase(out var database))
             {
                 try
                 {
-                    return await this._database.StringGetAsync(key, flags);
+                    return await database.StringGetAsync(key, flags);
                 }
                 catch (Exception ex)
                 {
@@ -108,11 +117,11 @@ namespace StackExchange.Redis
 
         public async Task<bool> StringSetAsync(RedisKey key, string value, TimeSpan? expiry = null, When when = When.Always, CommandFlags flags = CommandFlags.None)
         {
-            if (this.IsAlive)
+            if (this._GetDatabase(out var database))
             {
                 try
                 {
-                    return await this._database.StringSetAsync(key, value, expiry: expiry, when: when);
+                    return await database.StringSetAsync(key, value, expiry: expiry, when: when);
                 }
                 catch (Exception ex)
                 {
@@ -125,11 +134,11 @@ namespace StackExchange.Redis
 
         public async Task<bool> KeyExistsAsync(RedisKey key)
         {
-            if (this.IsAlive)
+            if (this._GetDatabase(out var database))
             {
                 try
                 {
-                    return await this._database.KeyExistsAsync(key);
+                    return await database.KeyExistsAsync(key);
                 }
                 catch (Exception ex)
                 {
@@ -142,11 +151,11 @@ namespace StackExchange.Redis
 
         public async Task<bool> KeyDeleteAsync(RedisKey key)
         {
-            if (this.IsAlive)
+            if (this._GetDatabase(out var database))
             {
                 try
                 {
-                    return await this._database.KeyDeleteAsync(key);
+                    return await database.KeyDeleteAsync(key);
                 }
                 catch (Exception ex)
                 {
@@ -157,21 +166,27 @@ namespace StackExchange.Redis
             return await Task.FromResult(false);
         }
 
-        public async Task<List<string>> GetKeys(string host, int db)
+        public async Task<List<string>> GetKeys(int db, string pattern = "*")
         {
-            if (this.IsAlive)
+            List<string> endmodel = null;
+            if (this._GetDatabase(out var database))
             {
                 try
                 {
-                    List<string> endmodel = new List<string>();
-                    var multiplexer = await ConnectionMultiplexer.ConnectAsync(configuration);
-                    var server = multiplexer.GetServer(host);
+                    if (database.Database != db)
+                        database = database.Multiplexer.GetDatabase(db);
 
-                    var aaa = server.Keys(db, "*");
+                    endmodel = new List<string>();
+                    var endPoints = database.Multiplexer.GetEndPoints();
+                    if (endPoints.Length > 0)
+                    {
+                        var server = database.Multiplexer.GetServer(endPoints[0]);
 
-                    foreach (var m in aaa)
-                        endmodel.Add(m);
+                        var keys = server.Keys(db, "*");
 
+                        foreach (var m in keys)
+                            endmodel.Add(m);
+                    }
                     return endmodel;
                 }
                 catch (Exception ex)
@@ -180,16 +195,16 @@ namespace StackExchange.Redis
                     _logger.LogError(ex, $"Error : GetKeys");
                 }
             }
-            return null;
+            return await Task.FromResult(endmodel);
         }
 
 
 
         public RedisValue StringGet(RedisKey key)
         {
-            if (this.IsAlive)
+            if (this._GetDatabase(out var database))
             {
-                try { return this._database.StringGet(key); }
+                try { return database.StringGet(key); }
                 catch (Exception ex) { CloseConnection(ex, key); }
             }
             return default(RedisValue);
@@ -197,9 +212,9 @@ namespace StackExchange.Redis
 
         public bool StringSet(RedisKey key, RedisValue value, TimeSpan? expiry = null)
         {
-            if (this.IsAlive)
+            if (this._GetDatabase(out var database))
             {
-                try { return this._database.StringSet(key, value, expiry: expiry); }
+                try { return database.StringSet(key, value, expiry: expiry); }
                 catch (Exception ex) { CloseConnection(ex, $"{key}"); }
             }
             return false;
@@ -207,9 +222,9 @@ namespace StackExchange.Redis
 
         public bool KeyDelete(RedisKey key)
         {
-            if (this.IsAlive)
+            if (this._GetDatabase(out var database))
             {
-                try { return this._database.KeyDelete(key); }
+                try { return database.KeyDelete(key); }
                 catch (Exception ex) { CloseConnection(ex, $"{key}"); }
             }
             return false;
@@ -217,9 +232,9 @@ namespace StackExchange.Redis
 
         public long Publish(RedisChannel channel, RedisValue message, CommandFlags flags = CommandFlags.None)
         {
-            if (this.IsAlive)
+            if (this._GetDatabase(out var database))
             {
-                try { return this._database.Publish(channel, message, flags); }
+                try { return database.Publish(channel, message, flags); }
                 catch (Exception ex) { CloseConnection(ex, $"{channel}"); }
             }
             return 0;

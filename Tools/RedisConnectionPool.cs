@@ -201,12 +201,12 @@ namespace StackExchange.Redis
         {
             internal readonly string configuration;
             internal readonly double timeout;
-            private DateTime _objectTime = DateTime.Now;
+            private readonly DateTime _objectTime = DateTime.Now;
             public double TimeElapsed => (DateTime.Now - this._objectTime).TotalSeconds;
             internal bool IsObjectTimeout() => this.TimeElapsed >= timeout;
-            protected ILogger _logger;
+            protected readonly ILogger _logger;
 
-            public RedisConnectionBase(string configuration, double timeout)
+            public RedisConnectionBase(ILogger logger, string configuration, double timeout)
             {
                 this.configuration = configuration;
                 this.timeout = timeout;

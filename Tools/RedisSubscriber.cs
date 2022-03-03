@@ -22,7 +22,7 @@ namespace StackExchange.Redis
         }
 
         private RedisSubscriber(RedisSubscriber src)
-            : base(src._logger, src.configuration, src.timeout)
+            : base(src.logger, src.configuration, src.Timeout)
         {
             this.subscriber = ConnectionMultiplexer.Connect(this.configuration).GetSubscriber();
             lock (this.handlers1)
@@ -93,7 +93,7 @@ namespace StackExchange.Redis
 
         void OnMessage(RedisChannel channel, RedisValue message)
         {
-            _logger.LogInformation($"redis subscribe : {channel}, {message}");
+            logger.LogInformation($"redis subscribe : {channel}, {message}");
             var handlers = Interlocked.CompareExchange(ref handlers2, null, null);
             for (int i = 0; i < handlers.Length; i++)
             {
@@ -103,7 +103,7 @@ namespace StackExchange.Redis
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, ex.Message);
+                    logger.LogError(ex, ex.Message);
                 }
             }
         }

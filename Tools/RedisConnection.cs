@@ -24,7 +24,7 @@ namespace StackExchange.Redis
         internal void CloseConnection(Exception ex, string msg, [CallerMemberName] string caller = null)
         {
             using (this)
-                _logger.LogError(ex, $"Error : {caller}({msg})");
+                logger.LogError(ex, $"Error : {caller}({msg})");
         }
 
         public void CloseConnection()
@@ -67,14 +67,14 @@ namespace StackExchange.Redis
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, "Deserialize error.");
+                            logger.LogError(ex, "Deserialize error.");
                         }
                     }
                 }
                 catch (Exception ex)
                 {
                     CloseConnection();
-                    _logger.LogError(ex, $"Error : StringGet({key})");
+                    logger.LogError(ex, $"Error : StringGet({key})");
                 }
             }
             return await Task.FromResult<T>(default(T));
@@ -92,7 +92,7 @@ namespace StackExchange.Redis
                 catch (Exception ex)
                 {
                     CloseConnection();
-                    _logger.LogError(ex, $"Error : StringSet({key})");
+                    logger.LogError(ex, $"Error : StringSet({key})");
                 }
             }
             return await Task.FromResult(false);
@@ -109,7 +109,7 @@ namespace StackExchange.Redis
                 catch (Exception ex)
                 {
                     CloseConnection();
-                    _logger.LogError(ex, $"Error : StringGet({key})");
+                    logger.LogError(ex, $"Error : StringGet({key})");
                 }
             }
             return await Task.FromResult(default(string));
@@ -126,7 +126,7 @@ namespace StackExchange.Redis
                 catch (Exception ex)
                 {
                     CloseConnection();
-                    _logger.LogError(ex, $"Error : StringSet({key})");
+                    logger.LogError(ex, $"Error : StringSet({key})");
                 }
             }
             return await Task.FromResult(false);
@@ -143,7 +143,7 @@ namespace StackExchange.Redis
                 catch (Exception ex)
                 {
                     CloseConnection();
-                    _logger.LogError(ex, $"Error : KeyExists({key})");
+                    logger.LogError(ex, $"Error : KeyExists({key})");
                 }
             }
             return await Task.FromResult(false);
@@ -160,7 +160,7 @@ namespace StackExchange.Redis
                 catch (Exception ex)
                 {
                     CloseConnection();
-                    _logger.LogError(ex, $"Error : KeyDelete({key})");
+                    logger.LogError(ex, $"Error : KeyDelete({key})");
                 }
             }
             return await Task.FromResult(false);
@@ -192,7 +192,7 @@ namespace StackExchange.Redis
                 catch (Exception ex)
                 {
                     CloseConnection();
-                    _logger.LogError(ex, $"Error : GetKeys");
+                    logger.LogError(ex, $"Error : GetKeys");
                 }
             }
             return await Task.FromResult(endmodel);

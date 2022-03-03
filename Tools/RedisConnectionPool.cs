@@ -11,8 +11,8 @@ namespace StackExchange.Redis
 {
     public static class RedisConnectionExtensions
     {
-        private const double DefaultTimeout = 5 * 60;
-        private const double SubscriberTimeout = 30 * 60;
+        private const double DefaultTimeout = 5 * 60 * 1000;
+        private const double SubscriberTimeout = 3 * 10 * 1000;
 
         public static IServiceCollection AddRedisConnectionPool(this IServiceCollection services)
         {
@@ -162,7 +162,7 @@ namespace StackExchange.Redis
                         var _item = _subscribers[i];
                         if (_item.IsAlive == false)
                             _subscribers.RemoveAt(i);
-                        else if (configuration == _item.configuration && timeout == _item.timeout)
+                        else if (configuration == _item.configuration && timeout == _item.Timeout)
                             result = result ?? _item;
                     }
                 }
@@ -187,7 +187,7 @@ namespace StackExchange.Redis
                             using (_item)
                                 _connections.RemoveAt(i);
                         }
-                        else if (configuration == _item.configuration && timeout == _item.timeout)
+                        else if (configuration == _item.configuration && timeout == _item.Timeout)
                         {
                             result = result ?? _item;
                         }
@@ -200,16 +200,17 @@ namespace StackExchange.Redis
         public abstract class RedisConnectionBase
         {
             internal readonly string configuration;
-            internal readonly double timeout;
+            public double Timeout { get; }
             private readonly DateTime _objectTime = DateTime.Now;
-            public double TimeElapsed => (DateTime.Now - this._objectTime).TotalSeconds;
-            internal bool IsObjectTimeout() => this.TimeElapsed >= timeout;
-            protected readonly ILogger _logger;
+            public double TimeElapsed => (DateTime.Now - this._objectTime).TotalMilliseconds;
+            public bool IsObjectTimeout() => this.TimeElapsed >= Timeout;
+            protected readonly ILogger logger;
 
             public RedisConnectionBase(ILogger logger, string configuration, double timeout)
             {
+                this.logger = logger;
                 this.configuration = configuration;
-                this.timeout = timeout;
+                this.Timeout = timeout;
             }
         }
     }

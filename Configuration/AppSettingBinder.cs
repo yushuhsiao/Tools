@@ -32,10 +32,10 @@ namespace Microsoft.Extensions.Configuration
         }
 
 
-        public static TValue GetValue<TValue>(this IConfiguration configuration, [CallerMemberName] string name = null, int index = 0)
+        public static TValue GetValue<TValue>(this IConfiguration configuration, [CallerMemberName] string name = null, int index1 = 0, int index2 = 0)
         {
             if (configuration is _Binder binder)
-                return binder.GetValue<TValue>(name, index);
+                return binder.GetValue<TValue>(name, index1, index2);
             return ConfigurationBinder.GetValue(configuration, name, default(TValue));
         }
 
@@ -123,7 +123,7 @@ namespace Microsoft.Extensions.Configuration
 
             protected abstract Type CallerType { get; }
 
-            public TValue GetValue<TValue>(string name, int index)
+            public TValue GetValue<TValue>(string name, int index1, int index2)
             {
                 if (name == null)
                     return default;
@@ -143,15 +143,15 @@ namespace Microsoft.Extensions.Configuration
                         string key;
                         if (string.IsNullOrEmpty(_section))
                         {
-                            if (index == 0)
+                            if (index1 == 0 && index2 == 0)
                                 key = _key;
                             else
-                                key = $"{_key}:{index}";
+                                key = $"{_key}:{index1}:{index2}";
                         }
-                        else if (index==0)
+                        else if (index1 == 0 && index2 == 0)
                             key = $"{_section}:{_key}";
                         else
-                            key = $"{_section}:{_key}:{index}";
+                            key = $"{_section}:{_key}:{index1}:{index2}";
                         //else
                         //{
                         //}

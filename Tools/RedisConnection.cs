@@ -24,20 +24,20 @@ namespace StackExchange.Redis
 
         internal void CloseConnection(Exception ex, string msg, [CallerMemberName] string caller = null)
         {
-            using (this)
-                logger.LogError(ex, $"Error : {caller}({msg})");
+            logger.LogError(ex, $"Error : {caller}({msg})");
+            this.CloseConnection();
         }
 
         public void CloseConnection()
         {
-            using (this)
-                return;
+            using (var m = _database?.Multiplexer)
+                _database = null;
         }
 
         void IDisposable.Dispose()
         {
-            using (var m = _database?.Multiplexer)
-                _database = null;
+//            using (var m = _database?.Multiplexer)
+//                _database = null;
         }
 
         public bool IsAlive => this._GetDatabase(out var database);

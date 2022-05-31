@@ -1,4 +1,4 @@
-/// https://gist.githubusercontent.com/kalebpederson/5460509/raw/10ac0a9f692158831d11c4badbbaadbc9536b3ef/ColumnAttributeTypeMapper.cs
+// https://gist.githubusercontent.com/kalebpederson/5460509/raw/10ac0a9f692158831d11c4badbbaadbc9536b3ef/ColumnAttributeTypeMapper.cs
 
 using Dapper;
 using System;

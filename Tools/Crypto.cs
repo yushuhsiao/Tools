@@ -97,7 +97,11 @@ namespace System.Security.Cryptography
 
 
 
+        /// <summary>
+        /// CFS Hash
+        /// </summary>
         /// <see cref="https://github.com/Alger23/CFS/blob/master/CFS/CFS.cs"/>
+        /// <returns></returns>
         public static string CFS(this string codeStr)
         {
             var CodeLen = 30;

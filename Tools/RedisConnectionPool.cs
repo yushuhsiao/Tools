@@ -5,6 +5,7 @@ using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace StackExchange.Redis
@@ -200,10 +201,11 @@ namespace StackExchange.Redis
         public abstract class RedisConnectionBase
         {
             internal readonly string configuration;
+            protected TimeCounter timer = new TimeCounter();
             public double Timeout { get; }
-            private readonly DateTime _objectTime = DateTime.Now;
-            public double TimeElapsed => (DateTime.Now - this._objectTime).TotalMilliseconds;
-            public bool IsObjectTimeout() => this.TimeElapsed >= Timeout;
+            //private readonly DateTime _objectTime = DateTime.Now;
+            //public double TimeElapsed => (DateTime.Now - this._objectTime).TotalMilliseconds;
+            public bool IsObjectTimeout(bool reset = false) => this.timer.IsTimeout(Timeout, reset);
             protected readonly ILogger logger;
 
             public RedisConnectionBase(ILogger logger, string configuration, double timeout)

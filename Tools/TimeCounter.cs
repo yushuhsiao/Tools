@@ -10,34 +10,34 @@ namespace System.Threading
     [DebuggerStepThrough]
     public class TimeCounter
     {
-        long time_ticks;
+        long _BeginTime;
 
-        long Time_Ticks
+        long BeginTime
         {
-            get => Interlocked.Read(ref time_ticks);
-            set => Interlocked.Exchange(ref time_ticks, value);
+            get => Interlocked.Read(ref _BeginTime);
+            set => Interlocked.Exchange(ref _BeginTime, value);
         }
 
-        public long TotalTicks => DateTime.Now.Ticks - this.Time_Ticks;
+        public long ElapsedTicks => DateTime.Now.Ticks - this.BeginTime;
 
-        public DateTime Time => new DateTime(this.Time_Ticks);
+        public DateTime Time => new DateTime(this.BeginTime);
 
         public TimeCounter(bool reset = true)
         {
             if (reset) this.Reset();
         }
 
-        public void Reset() => this.Time_Ticks = DateTime.Now.Ticks;
+        public void Reset() => this.BeginTime = DateTime.Now.Ticks;
 
         public void ClearTicks()
         {
-            this.Time_Ticks = 0;
+            this.BeginTime = 0;
         }
 
         public void SetTicks(double milliseconds)
         {
             if (milliseconds >= 0)
-                this.Time_Ticks = DateTime.Now.AddMilliseconds(milliseconds).Ticks;
+                this.BeginTime = DateTime.Now.AddMilliseconds(milliseconds).Ticks;
         }
 
         public bool IsTimeout(double milliseconds, bool reset = false)
@@ -45,7 +45,7 @@ namespace System.Threading
             if (milliseconds < 0) return false;
             TimeSpan _t1 = TimeSpan.FromMilliseconds(milliseconds);
             long t1 = _t1.Ticks;
-            long t2 = this.Time_Ticks;
+            long t2 = this.BeginTime;
             long t3 = DateTime.Now.Ticks - t2;
             if (t2 == 0 || t1 < t3)
             {

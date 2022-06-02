@@ -42,8 +42,9 @@ namespace StackExchange.Redis
 
         void IDisposable.Dispose()
         {
-            using (subscriber?.Multiplexer)
-                subscriber = null;
+            lock (this.handlers1)
+                using (subscriber?.Multiplexer)
+                    subscriber = null;
         }
 
         private class Handler
@@ -52,7 +53,23 @@ namespace StackExchange.Redis
             public MessageHandler OnMessage { get; set; }
         }
 
-        
+        public void Reset()
+        {
+            var subscriber = ConnectionMultiplexer.Connect(this.configuration).GetSubscriber();
+            lock (this.handlers1)
+            {
+                using (this.subscriber?.Multiplexer)
+                {
+                    this.subscriber = subscriber;
+                    foreach (var h in this.handlers2)
+                    {
+                        try { subscriber.Subscribe(h.Channel, this.OnMessage); }
+                        catch { }
+                    }
+                }
+            }
+            base.timer.Reset();
+        }
 
         public void Subscribe(string channel, MessageHandler handler)
         {
@@ -70,8 +87,8 @@ namespace StackExchange.Redis
                     handlers1.Add(new Handler() { Channel = channel, OnMessage = handler });
                     Interlocked.Exchange(ref handlers2, handlers1.ToArray());
                 }
+                subscriber.Subscribe(channel, OnMessage);
             }
-            subscriber.Subscribe(channel, OnMessage);
         }
 
         public void UnSubscribe(string channel)
@@ -87,8 +104,8 @@ namespace StackExchange.Redis
                 }
                 if (cnt != handlers1.Count)
                     Interlocked.Exchange(ref handlers2, handlers1.ToArray());
+                subscriber.Unsubscribe(channel);
             }
-            subscriber.Unsubscribe(channel);
         }
 
         void OnMessage(RedisChannel channel, RedisValue message)

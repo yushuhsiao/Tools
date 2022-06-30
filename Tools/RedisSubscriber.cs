@@ -14,17 +14,20 @@ namespace StackExchange.Redis
         internal bool IsAlive => subscriber != null;
         private List<Handler> handlers1 = new List<Handler>();
         private Handler[] handlers2 = new Handler[0];
+        private Action<RedisSubscriber> dispose;
 
-        internal RedisSubscriber(IServiceProvider service, ISubscriber subscriber, string configuration, double timeout)
+        internal RedisSubscriber(IServiceProvider service, Action<RedisSubscriber> dispose, ISubscriber subscriber, string configuration, double timeout)
             : base(service?.GetService<ILogger<RedisConnection>>(), configuration, timeout)
         {
             this.subscriber = subscriber;
+            this.dispose = dispose;
         }
 
         private RedisSubscriber(RedisSubscriber src)
             : base(src.logger, src.configuration, src.Timeout)
         {
             this.subscriber = ConnectionMultiplexer.Connect(this.configuration).GetSubscriber();
+            this.dispose = src.dispose;
             lock (this.handlers1)
             {
                 lock (src.handlers1)
@@ -45,6 +48,7 @@ namespace StackExchange.Redis
             lock (this.handlers1)
                 using (subscriber?.Multiplexer)
                     subscriber = null;
+            dispose(this);
         }
 
         private class Handler

@@ -11,14 +11,16 @@ namespace StackExchange.Redis
 {
     public sealed class RedisConnection : RedisConnectionExtensions.RedisConnectionBase, IDisposable//, IDatabase
     {
-        internal static readonly RedisConnection _null_item = new RedisConnection(null, null, null, 0);
+        internal static readonly RedisConnection _null_item = new RedisConnection(null, null, null, null, 0);
 
         private IDatabase _database;
+        private Action<RedisConnection> _dispose;
 
-        internal RedisConnection(IServiceProvider service, IDatabase database, string configuration, double timeout)
+        internal RedisConnection(IServiceProvider service, Action<RedisConnection> dispose, IDatabase database, string configuration, double timeout)
             : base(service?.GetService<ILogger<RedisConnection>>(), configuration, timeout)
         {
             this._database = database;
+            this._dispose = dispose;
         }
 
 
@@ -32,10 +34,12 @@ namespace StackExchange.Redis
         {
             using (var m = _database?.Multiplexer)
                 _database = null;
+            _dispose(this);
         }
 
         void IDisposable.Dispose()
         {
+            _dispose(this);
 //            using (var m = _database?.Multiplexer)
 //                _database = null;
         }
@@ -85,24 +89,32 @@ namespace StackExchange.Redis
         public async Task<List<string>> GetKeys(int db, string pattern = "*")
         {
             List<string> endmodel = null;
+
             if (this._GetDatabase(out var database))
             {
                 try
                 {
-                    if (database.Database != db)
-                        database = database.Multiplexer.GetDatabase(db);
-
-                    endmodel = new List<string>();
-                    var endPoints = database.Multiplexer.GetEndPoints();
-                    if (endPoints.Length > 0)
+                    if (GetServer(db, out var server))
                     {
-                        var server = database.Multiplexer.GetServer(endPoints[0]);
-
-                        var keys = server.Keys(db, "*");
-
+                        var keys = server.Keys(db, pattern);
+                        endmodel = new List<string>();
                         foreach (var m in keys)
                             endmodel.Add(m);
                     }
+                    //if (database.Database != db)
+                    //    database = database.Multiplexer.GetDatabase(db);
+
+                    //endmodel = new List<string>();
+                    //var endPoints = database.Multiplexer.GetEndPoints();
+                    //if (endPoints.Length > 0)
+                    //{
+                    //    var server = database.Multiplexer.GetServer(endPoints[0]);
+
+                    //    var keys = server.Keys(db, pattern);
+
+                    //    foreach (var m in keys)
+                    //        endmodel.Add(m);
+                    //}
                     return endmodel;
                 }
                 catch (Exception ex)
@@ -114,9 +126,64 @@ namespace StackExchange.Redis
             return await Task.FromResult(endmodel);
         }
 
+        public System.Linq.IGrouping<string, KeyValuePair<string, string>>[] Info(RedisValue section, CommandFlags flags = CommandFlags.None)
+        {
+            if (GetServer(null, out var server))
+                return server.Info(section, flags);
+            return null;
+        }
+
+        public IEnumerable<KeyValuePair<int, int>> Info_KeysCount(CommandFlags flags = CommandFlags.None)
+        {
+            var info = this.Info("keyspace");
+            foreach (var info2 in info)
+            {
+                if (info2.Key == "Keyspace")
+                {
+                    foreach (var info3 in info2)
+                    {
+                        if (info3.Key.StartsWith("db", StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (info3.Key.Substring(2).ToInt32(out int db))
+                            {
+                                foreach (var info4 in info3.Value.Split(','))
+                                {
+                                    if ( info4.StartsWith("keys=", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        if (info4.Substring(5).ToInt32(out var n))
+                                        {
+                                            yield return new KeyValuePair<int, int>(db, n);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
 
+        private bool GetServer(int? db, out IServer server)
+        {
+            if (this._GetDatabase(out var database))
+            {
+                if (db.HasValue)
+                {
+                    if (database.Database != db.Value)
+                        database = database.Multiplexer.GetDatabase(db.Value);
+                }
 
+                var endPoints = database.Multiplexer.GetEndPoints();
+                if (endPoints.Length > 0)
+                {
+                    server = database.Multiplexer.GetServer(endPoints[0]);
+                    return true;
+                }
+            }
+            server = null;
+            return false;
+        }
 
 
 

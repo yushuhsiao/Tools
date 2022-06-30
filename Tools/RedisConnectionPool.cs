@@ -30,7 +30,14 @@ namespace StackExchange.Redis
 
         public static async Task<RedisConnection> GetRedisConnectionAsync(this IServiceProvider service, string configuration, double timeout = DefaultTimeout)
         {
-            return await service.GetService<_RedisConnectionPool>().GetConnectionAsync(configuration, timeout);
+            var redis = await service.GetService<_RedisConnectionPool>().GetConnectionAsync(configuration, timeout);
+
+            //foreach (var n in redis.Info_Keyspace())
+            //{
+            //    ;
+            //}
+
+            return redis;
         }
 
         public static RedisSubscriber GetRedisSubscriber(this IServiceProvider service, string configuration, double timeout = SubscriberTimeout)
@@ -66,7 +73,7 @@ namespace StackExchange.Redis
                 {
                     try
                     {
-                        return new RedisConnection(_service,
+                        return new RedisConnection(_service, this.ReleaseConnection,
                             ConnectionMultiplexer.Connect(configuration)?.GetDatabase(asyncState: _connections),
                             configuration,
                             timeout);
@@ -88,7 +95,7 @@ namespace StackExchange.Redis
                 {
                     try
                     {
-                        return new RedisConnection(_service,
+                        return new RedisConnection(_service, this.ReleaseConnection,
                             (await ConnectionMultiplexer.ConnectAsync(configuration))?.GetDatabase(asyncState: _connections),
                             configuration,
                             timeout);
@@ -110,7 +117,7 @@ namespace StackExchange.Redis
                 {
                     try
                     {
-                        subscriber = new RedisSubscriber(_service,
+                        subscriber = new RedisSubscriber(_service, this.ReleaseConnection,
                             ConnectionMultiplexer.Connect(configuration)?.GetSubscriber(asyncState: _subscribers),
                             configuration,
                             timeout);
@@ -136,7 +143,7 @@ namespace StackExchange.Redis
                 {
                     try
                     {
-                        subscriber = new RedisSubscriber(_service,
+                        subscriber = new RedisSubscriber(_service, this.ReleaseConnection,
                             (await ConnectionMultiplexer.ConnectAsync(configuration))?.GetSubscriber(asyncState: _subscribers),
                             configuration,
                             timeout);
@@ -170,6 +177,13 @@ namespace StackExchange.Redis
                 return result != null;
             }
 
+            private void ReleaseConnection(RedisSubscriber subscriber)
+            {
+                if (subscriber.IsAlive)
+                    lock (_subscribers)
+                        _subscribers.Add(subscriber);
+            }
+
             private bool GetConnection(string configuration, double timeout, out RedisConnection result)
             {
                 result = null;
@@ -195,6 +209,13 @@ namespace StackExchange.Redis
                     }
                 }
                 return result != null;
+            }
+
+            private void ReleaseConnection(RedisConnection connection)
+            {
+                if (connection.IsAlive)
+                    lock (_connections)
+                        _connections.Add(connection);
             }
         }
 

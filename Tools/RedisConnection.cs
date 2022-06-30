@@ -133,6 +133,11 @@ namespace StackExchange.Redis
             return null;
         }
 
+        /// <summary>
+        /// 列出每個 db 的 key 數量
+        /// </summary>
+        /// <param name="flags"></param>
+        /// <returns></returns>
         public IEnumerable<KeyValuePair<int, int>> Info_KeysCount(CommandFlags flags = CommandFlags.None)
         {
             var info = this.Info("keyspace");

@@ -55,6 +55,23 @@ namespace StackExchange.Redis
             return database != null;
         }
 
+        public T GetObject<T>(RedisKey key)
+        {
+            if (this._GetDatabase(out var database))
+            {
+                try
+                {
+                    RedisValue value = database.StringGet(key);
+                    if (value.HasValue)
+                    {
+                        try { return JsonConvert.DeserializeObject<T>(value.ToString()); }
+                        catch (Exception ex) { logger.LogError(ex, "Deserialize error."); }
+                    }
+                }
+                catch (Exception ex) { CloseConnection(ex, $"GetObjectAsync {key}"); }
+            }
+            return default;
+        }
 
         public async Task<T> GetObjectAsync<T>(RedisKey key)
         {
@@ -86,7 +103,7 @@ namespace StackExchange.Redis
         }
 
 
-        public async Task<List<string>> GetKeys(int db, string pattern = "*")
+        public List<string> GetKeys(int? db = null, string pattern = "*")
         {
             List<string> endmodel = null;
 
@@ -96,25 +113,11 @@ namespace StackExchange.Redis
                 {
                     if (GetServer(db, out var server))
                     {
-                        var keys = server.Keys(db, pattern);
+                        var keys = server.Keys(db ?? database.Database, pattern);
                         endmodel = new List<string>();
                         foreach (var m in keys)
                             endmodel.Add(m);
                     }
-                    //if (database.Database != db)
-                    //    database = database.Multiplexer.GetDatabase(db);
-
-                    //endmodel = new List<string>();
-                    //var endPoints = database.Multiplexer.GetEndPoints();
-                    //if (endPoints.Length > 0)
-                    //{
-                    //    var server = database.Multiplexer.GetServer(endPoints[0]);
-
-                    //    var keys = server.Keys(db, pattern);
-
-                    //    foreach (var m in keys)
-                    //        endmodel.Add(m);
-                    //}
                     return endmodel;
                 }
                 catch (Exception ex)
@@ -123,7 +126,12 @@ namespace StackExchange.Redis
                     logger.LogError(ex, $"Error : GetKeys");
                 }
             }
-            return await Task.FromResult(endmodel);
+            return endmodel;
+        }
+
+        public async Task<List<string>> GetKeysAsync(int? db = null, string pattern = "*")
+        {
+            return await Task.FromResult(this.GetKeys(db, pattern));
         }
 
         public System.Linq.IGrouping<string, KeyValuePair<string, string>>[] Info(RedisValue section, CommandFlags flags = CommandFlags.None)

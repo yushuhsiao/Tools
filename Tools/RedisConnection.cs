@@ -177,7 +177,7 @@ namespace StackExchange.Redis
         }
 
 
-        private bool GetServer(int? db, out IServer server)
+        public bool GetServer(int? db, out IServer server)
         {
             if (this._GetDatabase(out var database))
             {

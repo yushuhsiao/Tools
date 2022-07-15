@@ -183,9 +183,9 @@ namespace StackExchange.Redis
             {
                 lock (_connections)
                 {
-                    for (int i = _connections.Count - 1; i >= 0; i--)
+                    _begin:
+                    foreach (var _item in _connections)
                     {
-                        var _item = _connections[i];
                         bool close = false;
                         if (_item.IsAlive == false)
                         {
@@ -198,16 +198,15 @@ namespace StackExchange.Redis
                         else if (configuration == _item.configuration && timeout == _item.Timeout)
                         {
                             result = _item;
-                            _connections.RemoveAt(i);
+                            while (_connections.Remove(_item)) ;
                             return true;
                         }
+
                         if (close)
                         {
                             using (_item)
-                            {
                                 _item.CloseConnection();
-                                _connections.RemoveAt(i);
-                            }
+                            goto _begin;
                         }
                     }
                 }

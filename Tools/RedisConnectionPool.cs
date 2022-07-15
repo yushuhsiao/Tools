@@ -30,14 +30,7 @@ namespace StackExchange.Redis
 
         public static async Task<RedisConnection> GetRedisConnectionAsync(this IServiceProvider service, string configuration, double timeout = DefaultTimeout)
         {
-            var redis = await service.GetService<_RedisConnectionPool>().GetConnectionAsync(configuration, timeout);
-
-            //foreach (var n in redis.Info_Keyspace())
-            //{
-            //    ;
-            //}
-
-            return redis;
+            return await service.GetService<_RedisConnectionPool>().GetConnectionAsync(configuration, timeout);
         }
 
         public static RedisSubscriber GetRedisSubscriber(this IServiceProvider service, string configuration, double timeout = SubscriberTimeout)

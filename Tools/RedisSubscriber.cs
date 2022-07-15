@@ -60,20 +60,35 @@ namespace StackExchange.Redis
 
         public void Reset()
         {
-            var subscriber = ConnectionMultiplexer.Connect(this.configuration).GetSubscriber();
+            IConnectionMultiplexer m;
             lock (this.handlers1)
+                m = this.subscriber?.Multiplexer;
+            ISubscriber subscriber;
+            try
             {
-                using (this.subscriber?.Multiplexer)
+                subscriber = ConnectionMultiplexer.Connect(this.configuration).GetSubscriber();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"PubSub timeout, {ex.Message}");
+                subscriber = null;
+            }
+            if (subscriber != null)
+            {
+                using (m)
                 {
-                    this.subscriber = subscriber;
-                    foreach (var h in this.handlers2)
+                    lock (this.handlers1)
                     {
-                        try { subscriber.Subscribe(h.Channel, this.OnMessage); }
-                        catch { }
+                        this.subscriber = subscriber;
+                        foreach (var h in this.handlers2)
+                        {
+                            try { subscriber.Subscribe(h.Channel, this.OnMessage); }
+                            catch { }
+                        }
                     }
+                    base.timer.Reset();
                 }
             }
-            base.timer.Reset();
         }
 
         public void Subscribe(string channel, MessageHandler handler)

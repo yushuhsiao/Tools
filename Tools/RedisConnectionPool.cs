@@ -186,21 +186,28 @@ namespace StackExchange.Redis
                     for (int i = _connections.Count - 1; i >= 0; i--)
                     {
                         var _item = _connections[i];
+                        bool close = false;
                         if (_item.IsAlive == false)
                         {
-                            using (_item)
-                                _connections.RemoveAt(i);
+                            close = true;
                         }
-                        if (_item.IsObjectTimeout())
+                        else if (_item.IsObjectTimeout())
                         {
-                            using (_item)
-                                _connections.RemoveAt(i);
+                            close = true;
                         }
                         else if (configuration == _item.configuration && timeout == _item.Timeout)
                         {
                             result = _item;
                             _connections.RemoveAt(i);
                             return true;
+                        }
+                        if (close)
+                        {
+                            using (_item)
+                            {
+                                _item.CloseConnection();
+                                _connections.RemoveAt(i);
+                            }
                         }
                     }
                 }
@@ -213,6 +220,9 @@ namespace StackExchange.Redis
                 if (connection.IsAlive)
                     lock (_connections)
                         _connections.Add(connection);
+                else
+                    lock (_connections)
+                        while (_connections.Remove(connection)) ;
             }
         }
 

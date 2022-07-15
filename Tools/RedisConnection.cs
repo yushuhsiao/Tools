@@ -34,12 +34,12 @@ namespace StackExchange.Redis
         {
             using (var m = _database?.Multiplexer)
                 _database = null;
-            _dispose(this);
+            _dispose?.Invoke(this);
         }
 
         void IDisposable.Dispose()
         {
-            _dispose(this);
+            _dispose?.Invoke(this);
 //            using (var m = _database?.Multiplexer)
 //                _database = null;
         }

@@ -186,7 +186,6 @@ namespace StackExchange.Redis
 
             private bool GetConnection(string configuration, double timeout, out RedisConnection result)
             {
-                result = null;
                 lock (_connections)
                 {
                     for (int i = _connections.Count - 1; i >= 0; i--)
@@ -204,10 +203,13 @@ namespace StackExchange.Redis
                         }
                         else if (configuration == _item.configuration && timeout == _item.Timeout)
                         {
-                            result = result ?? _item;
+                            result = _item;
+                            _connections.RemoveAt(i);
+                            return true;
                         }
                     }
                 }
+                result = null;
                 return result != null;
             }
 

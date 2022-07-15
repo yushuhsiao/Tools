@@ -19,29 +19,30 @@ namespace StackExchange.Redis
         internal RedisSubscriber(IServiceProvider service, Action<RedisSubscriber> dispose, ISubscriber subscriber, string configuration, double timeout)
             : base(service?.GetService<ILogger<RedisConnection>>(), configuration, timeout)
         {
-            this.subscriber = subscriber;
+            lock (this.handlers1)
+                this.subscriber = subscriber;
             this.dispose = dispose;
         }
 
-        private RedisSubscriber(RedisSubscriber src)
-            : base(src.logger, src.configuration, src.Timeout)
-        {
-            this.subscriber = ConnectionMultiplexer.Connect(this.configuration).GetSubscriber();
-            this.dispose = src.dispose;
-            lock (this.handlers1)
-            {
-                lock (src.handlers1)
-                    this.handlers1.AddRange(src.handlers1);
-                Interlocked.Exchange(ref this.handlers2, this.handlers1.ToArray());
-            }
-            foreach (var h in this.handlers2)
-            {
-                try { subscriber.Subscribe(h.Channel, this.OnMessage); }
-                catch { }
-            }
-        }
+        //private RedisSubscriber(RedisSubscriber src)
+        //    : base(src.logger, src.configuration, src.Timeout)
+        //{
+        //    this.subscriber = ConnectionMultiplexer.Connect(this.configuration).GetSubscriber();
+        //    this.dispose = src.dispose;
+        //    lock (this.handlers1)
+        //    {
+        //        lock (src.handlers1)
+        //            this.handlers1.AddRange(src.handlers1);
+        //        Interlocked.Exchange(ref this.handlers2, this.handlers1.ToArray());
+        //    }
+        //    foreach (var h in this.handlers2)
+        //    {
+        //        try { subscriber.Subscribe(h.Channel, this.OnMessage); }
+        //        catch { }
+        //    }
+        //}
 
-        public RedisSubscriber Clone() => new RedisSubscriber(this);
+        //public RedisSubscriber Clone() => new RedisSubscriber(this);
 
         void IDisposable.Dispose()
         {

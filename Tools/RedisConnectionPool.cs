@@ -162,7 +162,6 @@ namespace StackExchange.Redis
 
             private bool GetSubscriber(string configuration, double timeout, out RedisSubscriber result)
             {
-                result = null;
                 lock (_subscribers)
                 {
                     for (int i = _subscribers.Count - 1; i >= 0; i--)
@@ -171,17 +170,20 @@ namespace StackExchange.Redis
                         if (_item.IsAlive == false)
                             _subscribers.RemoveAt(i);
                         else if (configuration == _item.configuration && timeout == _item.Timeout)
-                            result = result ?? _item;
+                        {
+                            result =  _item;
+                            return true;
+                        }
                     }
                 }
-                return result != null;
+                result = null;
+                return false;
             }
 
             private void ReleaseConnection(RedisSubscriber subscriber)
             {
-                if (subscriber.IsAlive)
-                    lock (_subscribers)
-                        _subscribers.Add(subscriber);
+                lock (_subscribers)
+                    while (_subscribers.Remove(subscriber)) ;
             }
 
             private bool GetConnection(string configuration, double timeout, out RedisConnection result)

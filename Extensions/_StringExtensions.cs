@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-using _DebuggerStepThrough = System.Diagnostics.FakeDebuggerStepThroughAttribute;
+using _DebuggerStepThrough = System.Diagnostics.DebuggerStepThroughAttribute;
 
 namespace System
 {
@@ -138,13 +138,24 @@ namespace System
             return s;
         }
 
-        public static string ToHexString(this byte[] array, string format = "{0:x2}", string prefix = "0x")
+        //public static string ToHexString(this byte[] array, string format = "{0:x2}", string prefix = "0x")
+        //{
+        //    StringBuilder s = new StringBuilder();
+        //    if (!string.IsNullOrEmpty(prefix))
+        //        s.Append(prefix);
+        //    for (int i = 0; i < array.Length; i++)
+        //        s.AppendFormat(format, array[i]);
+        //    return s.ToString();
+        //}
+        public static string ToHexString(this byte[] data, string separator = ",", string format = "X2")
         {
             StringBuilder s = new StringBuilder();
-            if (!string.IsNullOrEmpty(prefix))
-                s.Append(prefix);
-            for (int i = 0; i < array.Length; i++)
-                s.AppendFormat(format, array[i]);
+            for (int i = 0; i < data.Length; i++)
+            {
+                if (i > 0)
+                    s.Append(separator);
+                s.Append(data[i].ToString(format));
+            }
             return s.ToString();
         }
 
@@ -301,17 +312,5 @@ namespace System
         public static bool ToEnum<T>(this String s, out T result) /***********/ where T : struct { return ToEnum<T>(s, true, out result); }
         public static T? ToEnum<T>(this String s, bool ignoreCase) /**********/ where T : struct { T result; if (ToEnum<T>(s, ignoreCase, out result)) return result; return null; }
         public static T? ToEnum<T>(this String s) /***************************/ where T : struct { T result; if (ToEnum<T>(s, true, out result)) return result; return null; }
-
-        public static string ToHexString(this byte[] data)
-        {
-            StringBuilder s = new StringBuilder();
-            for (int i = 0; i < data.Length; i++)
-            {
-                if (i > 0)
-                    s.Append(", ");
-                s.Append(data[i].ToString("x2"));
-            }
-            return s.ToString();
-        }
     }
 }

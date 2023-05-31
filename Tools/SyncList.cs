@@ -1,7 +1,4 @@
-﻿
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading;
+﻿using System.Threading;
 
 namespace System.Collections.Generic
 {
@@ -28,21 +25,21 @@ namespace System.Collections.Generic
             lock (list1)
             {
                 list1.Add(item);
-                list2 = Interlocked.Exchange(ref list2, list1.ToArray());
+                Interlocked.Exchange(ref list2, list1.ToArray());
             }
             return item;
         }
 
         public bool Remove(T item)
         {
+            bool ret = false;
             lock (list1)
             {
-                bool ret = false;
                 while (list1.Remove(item))
                     ret = true;
                 Interlocked.Exchange(ref list2, list1.ToArray());
-                return ret;
             }
+            return ret;
         }
     }
 }

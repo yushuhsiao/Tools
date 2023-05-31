@@ -153,6 +153,60 @@ namespace System.Security.Cryptography
             var result = Convert.ToInt64(num).ToString("X");
             return result;
         }
-    }
 
+        #region CRC16
+
+        const ushort crc_polynomial = 0xA001;
+        static readonly ushort[] crc_table = Init_Crc16Table();
+
+        public static ushort CRC16(byte[] bytes, int offset, int length)
+        {
+            ushort crc = 0;
+            for (int i = offset, cnt = 0; i < bytes.Length && cnt < length; ++i, length++)
+            {
+                byte index = (byte)(crc ^ bytes[i]);
+                crc = (ushort)((crc >> 8) ^ crc_table[index]);
+            }
+            return crc;
+        }
+
+        public static ushort CRC16(byte[] bytes)
+        {
+            ushort crc = 0;
+            for (int i = 0; i < bytes.Length; ++i)
+            {
+                byte index = (byte)(crc ^ bytes[i]);
+                crc = (ushort)((crc >> 8) ^ crc_table[index]);
+            }
+            return crc;
+        }
+
+        static ushort[] Init_Crc16Table()
+        {
+            ushort value;
+            ushort temp;
+            var table = new ushort[256];
+            for (ushort i = 0; i < table.Length; ++i)
+            {
+                value = 0;
+                temp = i;
+                for (byte j = 0; j < 8; ++j)
+                {
+                    if (((value ^ temp) & 0x0001) != 0)
+                    {
+                        value = (ushort)((value >> 1) ^ crc_polynomial);
+                    }
+                    else
+                    {
+                        value >>= 1;
+                    }
+                    temp >>= 1;
+                }
+                table[i] = value;
+            }
+            return table;
+        }
+
+        #endregion
+    }
 }

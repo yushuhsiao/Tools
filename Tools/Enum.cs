@@ -5,17 +5,12 @@ using _DebuggerStepThrough = System.Diagnostics.DebuggerStepThroughAttribute;
 namespace System
 {
     [_DebuggerStepThrough]
-    public static class Enum<T> where T : struct
+    public static partial class Enum<T> where T : struct
     {
-        [ComVisible(true)]
         public static string Format(object value, string format) => Enum.Format(typeof(T), value, format);
-        [ComVisible(true)]
         public static string GetName(object value) => Enum.GetName(typeof(T), value);
-        [ComVisible(true)]
         public static string[] GetNames() => Enum.GetNames(typeof(T));
-        [ComVisible(true)]
         public static Type GetUnderlyingType() => Enum.GetUnderlyingType(typeof(T));
-        [ComVisible(true)]
         public static T[] GetValues()
         {
             Array a = Enum.GetValues(typeof(T));
@@ -23,19 +18,21 @@ namespace System
             a.CopyTo(ret, 0);
             return ret;
         }
-        [ComVisible(true)]
-        public static T[] GetValues(params T[] exclude)
+        public static IEnumerable<T> GetValues(params T[] excludes)
         {
-            List<T> ret = new List<T>();
-            foreach (T n in Enum.GetValues(typeof(T)))
-                if (!exclude.Contains(n))
-                    ret.Add(n);
-            return ret.ToArray();
+            var values = Enum.GetValues(typeof(T));
+            for (int i = 0; i < values.Length; i++)
+            {
+                var n = (T)values.GetValue(i);
+                if (excludes.Contains(n))
+                    continue;
+                else
+                    yield return n;
+            }
         }
-        [ComVisible(true)]
+
         public static bool IsDefined(object value) => Enum.IsDefined(typeof(T), value);
 
-        [ComVisible(true)]
         public static bool TryParse(string value, out T result)
         {
             if (Enum<T>.IsDefined(value))
@@ -77,7 +74,6 @@ namespace System
             return false;
         }
 
-        [ComVisible(true)]
         public static T TryParse(string value)
         {
             if (Enum<T>.IsDefined(value))
@@ -85,31 +81,16 @@ namespace System
             return default(T);
         }
 
-        [ComVisible(true)]
         public static T Parse(string value) => (T)Enum.Parse(typeof(T), value);
-        [ComVisible(true)]
         public static T Parse(string value, bool ignoreCase) => (T)Enum.Parse(typeof(T), value, ignoreCase);
-        [ComVisible(true)]
         public static T ToObject(byte value) => (T)Enum.ToObject(typeof(T), value);
-        [ComVisible(true)]
         public static T ToObject(int value) => (T)Enum.ToObject(typeof(T), value);
-        [ComVisible(true)]
         public static T ToObject(long value) => (T)Enum.ToObject(typeof(T), value);
-        [ComVisible(true)]
         public static T ToObject(object value) => (T)Enum.ToObject(typeof(T), value);
-        [ComVisible(true)]
-        //[CLSCompliant(false)]
         public static T ToObject(sbyte value) => (T)Enum.ToObject(typeof(T), value);
-        [ComVisible(true)]
         public static T ToObject(short value) => (T)Enum.ToObject(typeof(T), value);
-        [ComVisible(true)]
-        //[CLSCompliant(false)]
         public static T ToObject(uint value) => (T)Enum.ToObject(typeof(T), value);
-        [ComVisible(true)]
-        //[CLSCompliant(false)]
         public static T ToObject(ulong value) => (T)Enum.ToObject(typeof(T), value);
-        [ComVisible(true)]
-        //[CLSCompliant(false)]
         public static T ToObject(ushort value) => (T)Enum.ToObject(typeof(T), value);
     }
 

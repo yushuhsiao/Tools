@@ -30,6 +30,29 @@ namespace System.Collections.Generic
             return item;
         }
 
+        public bool TryGetFirst(out T result, bool remove = false)
+        {
+            if (Monitor.TryEnter(list1))
+            {
+                try
+                {
+                    if (list1.Count > 0)
+                    {
+                        result = list1[0];
+                        if (remove)
+                        {
+                            list1.RemoveAt(0);
+                            Interlocked.Exchange(ref list2, list1.ToArray());
+                        }
+                        return true;
+                    }
+                }
+                finally { Monitor.Exit(list1); }
+            }
+            result = default;
+            return false;
+        }
+
         public bool Remove(T item)
         {
             bool ret = false;
@@ -40,6 +63,15 @@ namespace System.Collections.Generic
                 Interlocked.Exchange(ref list2, list1.ToArray());
             }
             return ret;
+        }
+
+        public void Clear()
+        {
+            lock (list1)
+            {
+                list1.Clear();
+                Interlocked.Exchange(ref list2, list1.ToArray());
+            }
         }
     }
 }

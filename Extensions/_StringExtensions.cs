@@ -18,6 +18,18 @@ namespace System
             return s;
         }
 
+        //public static string GetString(this Encoding encoding, byte[] array, bool trim_zero)
+        //{
+        //    string str = encoding.GetString(array);
+        //    if (trim_zero) return str.TrimZero();
+        //    else return str;
+        //}
+
+        /// <summary>
+        /// replace 0x00 to 0x20 and trim space
+        /// </summary>
+        public static string TrimZero(this string s) => s.Replace((char)0x00, (char)0x20).Trim();
+
         private static IEnumerable<string> ForEach(IEnumerable<string> names, string prefix)
         {
             foreach (string name in names)

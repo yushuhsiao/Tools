@@ -4,10 +4,16 @@ namespace System.Collections.Generic
 {
     public class SyncList<T>
     {
+        private bool useCache;
         private List<T> list1 = new List<T>();
         private T[] list2 = new T[0];
 
         public T[] Cache => Interlocked.CompareExchange(ref list2, null, null);
+
+        public SyncList(bool useCache = true)
+        {
+            this.useCache = useCache;
+        }
 
         public T this[int index]
         {
@@ -25,7 +31,7 @@ namespace System.Collections.Generic
             lock (list1)
             {
                 list1.Add(item);
-                Interlocked.Exchange(ref list2, list1.ToArray());
+                if (useCache) Interlocked.Exchange(ref list2, list1.ToArray());
             }
             return item;
         }
@@ -42,7 +48,7 @@ namespace System.Collections.Generic
                         if (remove)
                         {
                             list1.RemoveAt(0);
-                            Interlocked.Exchange(ref list2, list1.ToArray());
+                            if (useCache) Interlocked.Exchange(ref list2, list1.ToArray());
                         }
                         return true;
                     }
@@ -60,7 +66,7 @@ namespace System.Collections.Generic
             {
                 while (list1.Remove(item))
                     ret = true;
-                Interlocked.Exchange(ref list2, list1.ToArray());
+                if (useCache) Interlocked.Exchange(ref list2, list1.ToArray());
             }
             return ret;
         }

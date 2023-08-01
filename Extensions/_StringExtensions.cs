@@ -170,6 +170,21 @@ namespace System
             }
             return s.ToString();
         }
+        public static string ToHexString(this byte[] data, int offset, int count, string separator = ",", string format = "X2")
+        {
+            StringBuilder s = new StringBuilder();
+            int cnt = 0;
+            for (int i = offset; i < data.Length; i++)
+            {
+                if (cnt > 0)
+                    s.Append(separator);
+                s.Append(data[i].ToString(format));
+                cnt++;
+                if (cnt >= count)
+                    break;
+            }
+            return s.ToString();
+        }
 
         public static bool IsEquals(this string strA, string strB, bool ignoreCase = true)
         {

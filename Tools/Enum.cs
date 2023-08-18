@@ -33,16 +33,16 @@ namespace System
 
         public static bool IsDefined(object value) => Enum.IsDefined(typeof(T), value);
 
-        public static bool TryParse(string value, out T result)
-        {
-            if (Enum<T>.IsDefined(value))
-            {
-                result = Enum<T>.Parse(value);
-                return true;
-            }
-            result = default(T);
-            return false;
-        }
+        //public static bool TryParse(string value, out T result)
+        //{
+        //    if (Enum<T>.IsDefined(value))
+        //    {
+        //        result = Enum<T>.Parse(value);
+        //        return true;
+        //    }
+        //    result = default(T);
+        //    return false;
+        //}
 
         public static bool TryParse(object value, out T result)
         {

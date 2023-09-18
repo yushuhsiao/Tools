@@ -1,5 +1,4 @@
-﻿using Dapper;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -10,9 +9,38 @@ namespace Dapper
     [DebuggerStepThrough]
     public static class SqlMapperExtensions
     {
-        static SqlMapperExtensions()
+        static SqlMapperExtensions() => Init();
+
+        public static void Init()
         {
-            Dapper.SqlMapper.TypeMapProvider = type => new DefaultTypeMap(type);
+            SqlMapper.TypeMapProvider = type => new DefaultTypeMap(type);
+            SqlMapper.AddTypeHandler(new DateTimeHandler());
+            SqlMapper.AddTypeHandler(new DateTimeOffsetHandler());
+        }
+        private class DateTimeHandler : SqlMapper.TypeHandler<DateTime>
+        {
+            public override void SetValue(IDbDataParameter parameter, DateTime value)
+            {
+                parameter.Value = value;
+            }
+
+            public override DateTime Parse(object value)
+            {
+                return DateTime.SpecifyKind((DateTime)value, DateTimeKind.Utc);
+            }
+        }
+        private class DateTimeOffsetHandler : SqlMapper.TypeHandler<DateTimeOffset>
+        {
+            public override void SetValue(IDbDataParameter parameter, DateTimeOffset value)
+            {
+                parameter.Value = value;
+            }
+
+            public override DateTimeOffset Parse(object value)
+            {
+                var t = DateTime.SpecifyKind((DateTime)value, DateTimeKind.Utc);
+                return new DateTimeOffset(t);
+            }
         }
 
         public static int Execute(this IDbTransaction tran, string sql, object param = null, int? commandTimeout = null, CommandType? commandType = null)

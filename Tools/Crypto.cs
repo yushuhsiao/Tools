@@ -7,8 +7,8 @@ namespace System.Security.Cryptography
     [_DebuggerStepThrough]
     public static partial class Crypto
     {
-        public static string ToBase64String(byte[] input) => Convert.ToBase64String(input);
-        public static byte[] FromBase64String(string input) => Convert.FromBase64String(input);
+        //public static string ToBase64String(byte[] input) => Convert.ToBase64String(input);
+        //public static byte[] FromBase64String(string input) => Convert.FromBase64String(input);
 
         public static string MD5(this string input)
         {
@@ -24,40 +24,59 @@ namespace System.Security.Cryptography
             //using (MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider()) return md5.ComputeHash(input);
         }
 
-        public static string MD5Hex(this string input)
+        //public static string MD5Hex(this string input)
+        //{
+        //    return MD5Hex(input, null);
+        //}
+        //public static string MD5Hex(this string input, Encoding encoding)
+        //{
+        //    return MD5((encoding ?? Encoding.UTF8).GetBytes(input)).ToHex();
+        //}
+
+        //public static string SHA1Hex(this string input)
+        //{
+        //    return SHA1Hex(input, null);
+        //}
+        //public static string SHA1Hex(this string input, Encoding encoding)
+        //{
+        //    return SHA1((encoding ?? Encoding.UTF8).GetBytes(input)).ToHex();
+        //}
+        //static string ToHex(this byte[] data)
+        //{
+        //    StringBuilder s = new StringBuilder();
+        //    for (int i = 0; i < data.Length; i++)
+        //        s.AppendFormat("{0:X2}", data[i]);
+        //    return s.ToString();
+        //}
+
+        public static string SHA1(string input, Encoding encoding = null) => SHA(input, encoding, Cryptography.SHA1.Create);
+        public static string SHA256(string input, Encoding encoding = null) => SHA(input, encoding, Cryptography.SHA256.Create);
+        public static string SHA384(string input, Encoding encoding = null) => SHA(input, encoding, Cryptography.SHA384.Create);
+        public static string SHA512(string input, Encoding encoding = null) => SHA(input, encoding, Cryptography.SHA512.Create);
+
+        public static byte[] SHA1(this byte[] input) => input.SHA(Cryptography.SHA1.Create);
+        public static byte[] SHA256(this byte[] input) => input.SHA(Cryptography.SHA256.Create);
+        public static byte[] SHA384(this byte[] input) => input.SHA(Cryptography.SHA384.Create);
+        public static byte[] SHA512(this byte[] input) => input.SHA(Cryptography.SHA512.Create);
+
+        private static byte[] SHA<T>(this byte[] input, Func<T> create) where T : HashAlgorithm
         {
-            return MD5Hex(input, null);
-        }
-        public static string MD5Hex(this string input, Encoding encoding)
-        {
-            return MD5((encoding ?? Encoding.UTF8).GetBytes(input)).ToHex();
+            var t = create();
+            return t.ComputeHash(input);
         }
 
-        public static string SHA1Hex(this string input)
+        private static string SHA<T>(string input, Encoding encoding, Func<T> create) where T : HashAlgorithm
         {
-            return SHA1Hex(input, null);
-        }
-        public static string SHA1Hex(this string input, Encoding encoding)
-        {
-            return SHA1((encoding ?? Encoding.UTF8).GetBytes(input)).ToHex();
-        }
-        static string ToHex(this byte[] data)
-        {
-            StringBuilder s = new StringBuilder();
-            for (int i = 0; i < data.Length; i++)
-                s.AppendFormat("{0:X2}", data[i]);
-            return s.ToString();
-        }
-
-        public static byte[] SHA1(this byte[] input)
-        {
-            using (var sha1 = Cryptography.SHA1.Create()) return sha1.ComputeHash(input);
-            //using (SHA1CryptoServiceProvider sha1 = new SHA1CryptoServiceProvider()) return sha1.ComputeHash(input);
+            var t = create();
+            var data1 = encoding.GetBytes(input);
+            var data2 = t.ComputeHash(data1);
+            return encoding.GetString(data2);
         }
 
         public static AesCryptoServiceProvider AES = new AesCryptoServiceProvider();
         public static TripleDESCryptoServiceProvider TripleDES = new TripleDESCryptoServiceProvider();
         public static DESCryptoServiceProvider DES = new DESCryptoServiceProvider();
+        public static DSACryptoServiceProvider DSA = new DSACryptoServiceProvider();
 
         public static byte[] Encrypt<T>(this T provider, string input, string password, string salt, Encoding encoding) where T : SymmetricAlgorithm
         {

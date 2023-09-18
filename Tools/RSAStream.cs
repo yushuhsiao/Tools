@@ -6,6 +6,20 @@ namespace System.Security.Cryptography
 {
     public static partial class Crypto
     {
+        public static void RSAEncrypt(this RSAParameters parameters, byte[] input, out byte[] output)
+        {
+            var rsa = new RSACryptoServiceProvider();
+            rsa.ImportParameters(parameters);
+            Encrypt(rsa, input, out output);
+        }
+
+        public static void RSADecrypt(this RSAParameters parameters, byte[] input, out byte[] output)
+        {
+            var rsa = new RSACryptoServiceProvider();
+            rsa.ImportParameters(parameters);
+            Decrypt(rsa, input, out output);
+        }
+
         public static void Encrypt(this RSACryptoServiceProvider rsa, byte[] input, out byte[] output)
         {
             using (var ms1 = new MemoryStream(input))
@@ -53,17 +67,6 @@ namespace System.Security.Cryptography
                 stream.Write(tmp_dec, 0, tmp_dec.Length);
             }
             stream.Flush();
-            //while (input.Position < input.Length)
-            //{
-            //    int tmp_size = (int)(input.Length - input.Position);
-            //    if (tmp_size > keySize)
-            //        tmp_size = keySize;
-            //    byte[] tmp = new byte[tmp_size];
-            //    input.Read(tmp, 0, tmp.Length);
-            //    byte[] tmp_dec = rsa.Decrypt(tmp, false);
-            //    stream.Write(tmp_dec, 0, tmp_dec.Length);
-            //}
-            //stream.Flush();
         }
     }
 

@@ -47,14 +47,7 @@ namespace System.Collections.Generic
                         return true;
             return false;
         }
-        public static int IndexOf<T>(this T[] src, T value)
-        {
-            if (src != null)
-                for (int i = 0, n = src.Length; i < n; i++)
-                    if (EqualityComparer<T>.Default.Equals(src[i], value))
-                        return i;
-            return -1;
-        }
+        public static int IndexOf<T>(this T[] src, T value) => Array.IndexOf<T>(src, value);
 
         public static bool TryGetValueAt<T>(this T[] array, int index, out T result)
         {
@@ -74,7 +67,7 @@ namespace System.Collections.Generic
             return result;
         }
 
-        public static int indexOf(this byte[] src, byte[] value, int start, int count)
+        public static int IndexOf(this byte[] src, byte[] value, int start, int count)
         {
             if ((src == null) || (value == null)) return -1;
             if (src.Length < value.Length) return -1;
@@ -119,6 +112,13 @@ namespace System.Collections.Generic
             Array.Resize(ref array, len + 1);
             array[len] = item;
             return array;
+        }
+
+        public static TValue GetValue<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key)
+        {
+            if (dict.TryGetValue(key, out TValue value))
+                return value;
+            return default;
         }
     }
 

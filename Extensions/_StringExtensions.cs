@@ -8,6 +8,17 @@ namespace System
     [_DebuggerStepThrough]
     public static partial class _StringExtensions
     {
+        const string DATETIME_FORMAT1 = "yyyy/MM/dd HH:mm:ss";
+        const string DATETIME_FORMAT2 = "yyyy/MM/dd HH:mm:ss.ffffff";
+        public static string ToString(this DateTime? time, bool ms = true)
+        {
+            if (time.HasValue)
+                return ToString(time, ms);
+            return null;
+        }
+        public static string ToString(this DateTime time, bool ms = true) => time.ToString(ms ? DATETIME_FORMAT2 : DATETIME_FORMAT1);
+
+
         public static string Trim(this string s, bool nullOnEmpty = false)
         {
             if (s == null)

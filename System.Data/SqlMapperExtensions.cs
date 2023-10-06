@@ -13,9 +13,9 @@ namespace Dapper
 
         public static void Init()
         {
-            SqlMapper.TypeMapProvider = type => new DefaultTypeMap(type);
-            SqlMapper.AddTypeHandler(new DateTimeHandler());
-            SqlMapper.AddTypeHandler(new DateTimeOffsetHandler());
+            //SqlMapper.TypeMapProvider = type => new DefaultTypeMap(type);
+            //SqlMapper.AddTypeHandler(new DateTimeHandler());
+            //SqlMapper.AddTypeHandler(new DateTimeOffsetHandler());
         }
         private class DateTimeHandler : SqlMapper.TypeHandler<DateTime>
         {
@@ -26,7 +26,11 @@ namespace Dapper
 
             public override DateTime Parse(object value)
             {
-                return DateTime.SpecifyKind((DateTime)value, DateTimeKind.Utc);
+                if (value is string t1)
+                    value = DateTime.Parse(t1);
+                if (value is DateTime t2)
+                    return DateTime.SpecifyKind(t2, DateTimeKind.Utc);
+                return DateTime.MinValue;
             }
         }
         private class DateTimeOffsetHandler : SqlMapper.TypeHandler<DateTimeOffset>

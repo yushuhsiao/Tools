@@ -226,6 +226,30 @@ namespace System.Security.Cryptography
             return table;
         }
 
+        public static UInt16 ModRTU_CRC(byte[] buf) => ModRTU_CRC(buf, buf.Length);
+        public static UInt16 ModRTU_CRC(byte[] buf, int len)
+        {
+            UInt16 crc = 0xFFFF;
+
+            for (int pos = 0; pos < len; pos++)
+            {
+                crc ^= (UInt16)buf[pos];          // 取出第一個byte與crc XOR
+
+                for (int i = 8; i != 0; i--)
+                {    // 巡檢每個bit  
+                    if ((crc & 0x0001) != 0)
+                    {      // 如果 LSB = 1   
+                        crc >>= 1;                    // 右移1bit 並且 XOR 0xA001  
+                        crc ^= 0xA001;
+                    }
+                    else                            // 如果 LSB != 1  
+                        crc >>= 1;                    // 右移1bit
+                }
+            }
+
+            return crc;
+
+        }
         #endregion
     }
 }

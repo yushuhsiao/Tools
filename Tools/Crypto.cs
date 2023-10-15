@@ -240,7 +240,7 @@ namespace System.Security.Cryptography
                     if ((crc & 0x0001) != 0)
                     {      // 如果 LSB = 1   
                         crc >>= 1;                    // 右移1bit 並且 XOR 0xA001  
-                        crc ^= 0xA001;
+                        crc ^= crc_polynomial;
                     }
                     else                            // 如果 LSB != 1  
                         crc >>= 1;                    // 右移1bit

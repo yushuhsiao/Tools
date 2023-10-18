@@ -14,16 +14,16 @@ namespace System.Collections.Generic
             return default(T);
         }
 
-        public static bool In<T>(this T? n, params T[] args) where T : struct
-        {
-            if (n.HasValue)
-                return args.Contains(n.Value);
-            return false;
-        }
-        public static bool In<T>(this T n, params T[] args) where T : struct
-        {
-            return args.Contains(n);
-        }
+        //public static bool In<T>(this T? n, params T[] args) where T : struct
+        //{
+        //    if (n.HasValue)
+        //        return args.Contains(n.Value);
+        //    return false;
+        //}
+        //public static bool In<T>(this T n, params T[] args) where T : struct
+        //{
+        //    return args.Contains(n);
+        //}
 
         public static bool Contains<T>(this T[] src, T? value) where T : struct
         {

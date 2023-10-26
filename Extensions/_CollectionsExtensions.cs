@@ -120,6 +120,22 @@ namespace System.Collections.Generic
                 return value;
             return default;
         }
+
+        public static bool Remove<TKey, TValue>(this IDictionary<TKey, TValue> dict, TValue value)
+        {
+            int cnt = 0;
+            _begin:
+            foreach (var p in dict)
+            {
+                if (object.ReferenceEquals(p.Value, value))
+                {
+                    cnt++;
+                    dict.Remove(p);
+                    goto _begin;
+                }
+            }
+            return cnt > 0;
+        }
     }
 
     //    [_DebuggerStepThrough]

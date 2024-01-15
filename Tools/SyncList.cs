@@ -1,4 +1,5 @@
 ﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace System.Collections.Generic
 {
@@ -79,5 +80,53 @@ namespace System.Collections.Generic
                 Interlocked.Exchange(ref list2, list1.ToArray());
             }
         }
+
+
+        private object _runQueue;
+
+        public void RunQueue(Func<T, Task> cb)
+        {
+            var task = Task.Run(async () =>
+            {
+                if (Interlocked.CompareExchange(ref _runQueue, this, null) != null) return;
+                try
+                {
+                    for (int i = 0; i < 10; i++)
+                    {
+                        if (this.TryGetFirst(out var item, true))
+                        {
+                            i = 0;
+                            await cb(item);
+                        }
+                        else
+                        {
+                            await Task.Delay(10);
+                        }
+                    }
+                }
+                finally { Interlocked.Exchange(ref _runQueue, null); }
+            });
+        }
+
+        //public async Task RunQueue(Action<T> cb)
+        //{
+        //    if (Interlocked.CompareExchange(ref _runQueue, this, null) != null) return;
+        //    try
+        //    {
+        //        for (int i = 0; i < 10; i++)
+        //        {
+        //            if (this.TryGetFirst(out var item, true))
+        //            {
+        //                i = 0;
+        //                cb(item);
+        //            }
+        //            else
+        //            {
+        //                await Task.Delay(10);
+        //            }
+        //        }
+        //    }
+        //    finally { Interlocked.Exchange(ref _runQueue, null); }
+        //}
     }
 }

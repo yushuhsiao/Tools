@@ -33,9 +33,36 @@ namespace System.Runtime.InteropServices
             var p = src;
             for (int i = 0; i < len; i++, p++)
             {
-                if (*p == 0) break;
+                if (*p == 0)
+                {
+                    if (s.Length == 0)
+                        continue;
+                    else
+                        break;
+                }
                 s.Append((char)*p);
             }
+            return PtrToString(s, filter);
+        }
+        public unsafe static string PtrToString(char* src, int len, Func<string, string> filter = null)
+        {
+            StringBuilder s = new StringBuilder();
+            var p = src;
+            for (int i = 0; i < len; i++, p++)
+            {
+                if (*p == 0)
+                {
+                    if (s.Length == 0)
+                        continue;
+                    else
+                        break;
+                }
+                s.Append(*p);
+            }
+            return PtrToString(s, filter);
+        }
+        private unsafe static string PtrToString(StringBuilder s, Func<string, string> filter)
+        {
             if (filter == null)
                 return s.ToString();
             else

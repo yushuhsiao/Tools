@@ -37,6 +37,13 @@ namespace System.Collections.Generic
             return item;
         }
 
+        public T Add(T item, Func<T, Task> cb)
+        {
+            this.Add(item);
+            if (cb != null) this.RunQueue(cb);
+            return item;
+        }
+
         public bool TryGetFirst(out T result, bool remove = false)
         {
             if (Monitor.TryEnter(list1))

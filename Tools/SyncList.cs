@@ -93,21 +93,24 @@ namespace System.Collections.Generic
 
         public void RunQueue(Func<T, Task> cb)
         {
+            if (Interlocked.CompareExchange(ref _runQueue, this, null) != null) return;
             var task = Task.Run(async () =>
             {
-                if (Interlocked.CompareExchange(ref _runQueue, this, null) != null) return;
                 try
                 {
-                    for (int i = 0; i < 10; i++)
+                    for (int n1 = 0; n1 < 100; n1++)
                     {
-                        if (this.TryGetFirst(out var item, true))
+                        for (int n2 = 0; n2 < 100; n2++)
                         {
-                            i = 0;
-                            await cb(item);
-                        }
-                        else
-                        {
-                            await Task.Delay(10);
+                            if (this.TryGetFirst(out var item, true))
+                            {
+                                n1 = n2 = 0;
+                                await cb(item);
+                            }
+                            else
+                            {
+                                await Task.Delay(n1 == 0 ? 10 : 100);
+                            }
                         }
                     }
                 }

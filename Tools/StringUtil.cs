@@ -4,7 +4,7 @@ namespace System.Runtime.InteropServices
 {
     public static class StringUtil
     {
-        public unsafe static void ToPointer(string src, byte* dst, int len, Encoding encoding = null)
+        public unsafe static void StringToPtr(string src, byte* dst, int len, Encoding encoding = null)
         {
             if (string.IsNullOrEmpty(src)) return;
             encoding = encoding ?? Encoding.ASCII;
@@ -14,7 +14,7 @@ namespace System.Runtime.InteropServices
             //for (int i = 0; i < len && i < c1.Length; i++)
             //    *dst++ = (byte)c1[i];
         }
-        public unsafe static void ToPointer(string src, char* dst, int len, Encoding encoding = null)
+        public unsafe static void StringToPtr(string src, char* dst, int len, Encoding encoding = null)
         {
             if (string.IsNullOrEmpty(src)) return;
             encoding = encoding ?? Encoding.Unicode;

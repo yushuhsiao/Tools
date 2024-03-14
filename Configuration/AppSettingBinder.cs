@@ -39,6 +39,13 @@ namespace Microsoft.Extensions.Configuration
             return ConfigurationBinder.GetValue(configuration, name, default(TValue));
         }
 
+        public static void SetValue<TValue>(this IConfiguration configuration, TValue value, [CallerMemberName] string name = null, int index1 = 0, int index2 = 0)
+        {
+            if (configuration is _Binder binder)
+                binder.SetValue(value, name, index1, index2);
+            //ConfigurationBinder.GetValue(configuration, name, default(TValue));
+        }
+
         public abstract class Provider : ConfigurationProvider
         {
             public abstract void OnInit(IServiceProvider service);
@@ -123,6 +130,25 @@ namespace Microsoft.Extensions.Configuration
 
             protected abstract Type CallerType { get; }
 
+            private string BuildKey(_BinderMember item, int index1, int index2)
+            {
+                string _section = item.src.SectionName;
+                string _key = item.src.Key ?? item.Member.Name;
+                string key;
+                if (string.IsNullOrEmpty(_section))
+                {
+                    if (index1 == 0 && index2 == 0)
+                        key = _key;
+                    else
+                        key = $"{_key}:{index1}:{index2}";
+                }
+                else if (index1 == 0 && index2 == 0)
+                    key = $"{_section}:{_key}";
+                else
+                    key = $"{_section}:{_key}:{index1}:{index2}";
+                return key;
+            }
+
             public TValue GetValue<TValue>(string name, int index1, int index2)
             {
                 if (name == null)
@@ -133,41 +159,33 @@ namespace Microsoft.Extensions.Configuration
                     _BinderMember item = _members[i];
                     if (item.Member.Name == name)
                     {
-                        string _section = item.src.SectionName;
-                        string _key = item.src.Key ?? item.Member.Name;
+                        string key = BuildKey(item, index1, index2);
                         TValue defaultValue = item.GetDefaultValue<TValue>();
-
-                        //if (_provider != null && _provider.OnGetValue(_section, _key, out TValue _value, index))
-                        //    return _value;
-
-                        string key;
-                        if (string.IsNullOrEmpty(_section))
-                        {
-                            if (index1 == 0 && index2 == 0)
-                                key = _key;
-                            else
-                                key = $"{_key}:{index1}:{index2}";
-                        }
-                        else if (index1 == 0 && index2 == 0)
-                            key = $"{_section}:{_key}";
-                        else
-                            key = $"{_section}:{_key}:{index1}:{index2}";
-                        //else
-                        //{
-                        //}
-
-                        //if (!string.IsNullOrEmpty(_section))
-                        //{
-                        //    var section = _configuration.GetSection(_section);
-                        //    if (section == null)
-                        //        return defaultValue;
-                        //    else
-                        //        return section.GetValue<TValue>(_key, defaultValue);
-                        //}
                         return _configuration.GetValue(key, defaultValue);
                     }
                 }
                 return default;
+            }
+
+            public virtual void SetValue<TValue>(TValue value, string name, int index1, int index2)
+            {
+                if (name == null)
+                    return;
+                if (_configuration is ConfigurationManager manager)
+                {
+                    for (int i = 0; i < _members.Length; i++)
+                    {
+                        _BinderMember item = _members[i];
+                        if (item.Member.Name == name)
+                        {
+                            string key = BuildKey(item, index1, index2);
+                            if (value == null)
+                                manager[key] = null;
+                            else
+                                manager[key] = Convert.ToString(value);
+                        }
+                    }
+                }
             }
         }
 

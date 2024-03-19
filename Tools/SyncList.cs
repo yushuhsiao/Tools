@@ -89,54 +89,81 @@ namespace System.Collections.Generic
         }
 
 
-        private object _runQueue;
 
         public void RunQueue(Func<T, Task> cb)
         {
-            if (Interlocked.CompareExchange(ref _runQueue, this, null) != null) return;
-            var task = Task.Run(async () =>
+            Interlocked.Exchange(ref _runQueue_Func, cb);
+            Generic.RunQueue.Add(this.RunQueue);
+        }
+
+        private Func<T, Task> _runQueue_Func;
+        private object _runQueue_Busy;
+        private async Task RunQueue_Proc()
+        {
+            var cb = Interlocked.CompareExchange(ref _runQueue_Func, null, null);
+            if (cb == null) return;
+            Console.WriteLine($"RunQueue : {typeof(T).FullName}");
+            if (Interlocked.CompareExchange(ref _runQueue_Busy, this, null) == null)
             {
                 try
                 {
-                    for (int n1 = 0; n1 < 100; n1++)
-                    {
-                        for (int n2 = 0; n2 < 100; n2++)
-                        {
-                            if (this.TryGetFirst(out var item, true))
-                            {
-                                n1 = n2 = 0;
-                                await cb(item);
-                            }
-                            else
-                            {
-                                await Task.Delay(n1 == 0 ? 10 : 100);
-                            }
-                        }
-                    }
+                    int n;
+                    for (n = 0; this.TryGetFirst(out var item, true); n++)
+                        await cb(item);
+                    Console.WriteLine($"RunQueue : {typeof(T).FullName}, {n}");
                 }
-                finally { Interlocked.Exchange(ref _runQueue, null); }
-            });
+                finally { Interlocked.Exchange(ref _runQueue_Busy, null); }
+            }
         }
 
-        //public async Task RunQueue(Action<T> cb)
-        //{
-        //    if (Interlocked.CompareExchange(ref _runQueue, this, null) != null) return;
-        //    try
-        //    {
-        //        for (int i = 0; i < 10; i++)
-        //        {
-        //            if (this.TryGetFirst(out var item, true))
-        //            {
-        //                i = 0;
-        //                cb(item);
-        //            }
-        //            else
-        //            {
-        //                await Task.Delay(10);
-        //            }
-        //        }
-        //    }
-        //    finally { Interlocked.Exchange(ref _runQueue, null); }
-        //}
+        private bool RunQueue()
+        {
+            if (Interlocked.CompareExchange(ref _runQueue_Func, null, null) == null) return false;
+            if (Interlocked.CompareExchange(ref _runQueue_Busy, null, null) == null &&
+                this.TryGetFirst(out var item, false))
+                Task.Run(RunQueue_Proc);
+            return true;
+        }
+    }
+
+    internal static class RunQueue
+    {
+        static RunQueue() { new Timer(Proc, null, 0, 1); }
+
+        private static void Proc(object state)
+        {
+            if (Monitor.TryEnter(instances))
+            {
+                bool _lock = true;
+                Func<bool> exec;
+                try
+                {
+                    if (instances.Count == 0) return;
+                    exec = instances[Counter];
+                    Counter++;
+                    Counter %= instances.Count;
+                    Monitor.Exit(instances);
+                    _lock = false;
+                    if (exec() == false)
+                    {
+                        Monitor.Enter(instances);
+                        _lock = true;
+                        instances.Remove(exec);
+                    }
+                }
+                finally { if (_lock) Monitor.Exit(instances); }
+            }
+        }
+
+        private static int Counter;
+        private static List<Func<bool>> instances = new List<Func<bool>>();
+
+        public static void Add(Func<bool> obj)
+        {
+            if (instances.Contains(obj)) return;
+            lock (instances)
+                if (!instances.Contains(obj))
+                    instances.Add(obj);
+        }
     }
 }

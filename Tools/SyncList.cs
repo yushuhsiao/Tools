@@ -97,30 +97,28 @@ namespace System.Collections.Generic
         }
 
         private Func<T, Task> _runQueue_Func;
-        private object _runQueue_Busy;
+        private BusyState _runQueue_Busy;
+        //private object _runQueue_Busy;
         private async Task RunQueue_Proc()
         {
             var cb = Interlocked.CompareExchange(ref _runQueue_Func, null, null);
             if (cb == null) return;
             Console.WriteLine($"RunQueue : {typeof(T).FullName}");
-            if (Interlocked.CompareExchange(ref _runQueue_Busy, this, null) == null)
+            using (_runQueue_Busy.Enter(out var failed))
             {
-                try
-                {
-                    int n;
-                    for (n = 0; this.TryGetFirst(out var item, true); n++)
-                        await cb(item);
-                    Console.WriteLine($"RunQueue : {typeof(T).FullName}, {n}");
-                }
-                finally { Interlocked.Exchange(ref _runQueue_Busy, null); }
+                if (failed) return;
+                int n;
+                for (n = 0; this.TryGetFirst(out var item, true); n++)
+                    await cb(item);
+                Console.WriteLine($"RunQueue : {typeof(T).FullName}, {n}");
             }
         }
 
         private bool RunQueue()
         {
             if (Interlocked.CompareExchange(ref _runQueue_Func, null, null) == null) return false;
-            if (Interlocked.CompareExchange(ref _runQueue_Busy, null, null) == null &&
-                this.TryGetFirst(out var item, false))
+            if (//Interlocked.CompareExchange(ref _runQueue_Busy, null, null) == null &&
+                _runQueue_Busy.IsNotBusy && this.TryGetFirst(out var item, false))
                 Task.Run(RunQueue_Proc);
             return true;
         }

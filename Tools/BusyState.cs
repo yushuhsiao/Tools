@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 namespace System
 {
-    public struct BusyState : IDisposable
+    public class BusyState : IDisposable
     {
         private object _state;
 
@@ -12,7 +12,7 @@ namespace System
 
         public IDisposable Enter(out bool busy)
         {
-            if (Interlocked.CompareExchange(ref _state, typeof(object), null) == null)
+            if (Interlocked.CompareExchange(ref _state, 1, null) == null)
             {
                 busy = false;
                 return this;

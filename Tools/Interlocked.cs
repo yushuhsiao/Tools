@@ -1,6 +1,6 @@
 ﻿namespace System.Threading
 {
-    public struct Interlocked<T> : IDisposable where T : class
+    public class Interlocked<T> : IDisposable where T : class
     {
         private T _value;
 

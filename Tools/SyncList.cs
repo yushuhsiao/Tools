@@ -97,16 +97,16 @@ namespace System.Collections.Generic
         }
 
         private Func<T, Task> _runQueue_Func;
-        private BusyState _runQueue_Busy;
+        private readonly BusyState _runQueue_Busy = new BusyState();
         //private object _runQueue_Busy;
         private async Task RunQueue_Proc()
         {
             var cb = Interlocked.CompareExchange(ref _runQueue_Func, null, null);
             if (cb == null) return;
             Console.WriteLine($"RunQueue : {typeof(T).FullName}");
-            using (_runQueue_Busy.Enter(out var failed))
+            using (_runQueue_Busy.Enter(out var busy))
             {
-                if (failed) return;
+                if (busy) return;
                 int n;
                 for (n = 0; this.TryGetFirst(out var item, true); n++)
                     await cb(item);

@@ -126,7 +126,8 @@ namespace System.Collections.Generic
 
     internal static class RunQueue
     {
-        static RunQueue() { new Timer(Proc, null, 1, 1); }
+        static readonly Timer timer;
+        static RunQueue() { timer = new Timer(Proc, null, 1, 1); }
 
         private static void Proc(object state)
         {

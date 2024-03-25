@@ -29,6 +29,26 @@
         void IDisposable.Dispose() => Value = null;
     }
 
+    public class Interlocked_Bool
+    {
+        private object _value;
+
+        public Interlocked_Bool(bool value) { this.Value = value; }
+        public Interlocked_Bool() : this(false) { }
+
+        public bool Value
+        {
+            get => Interlocked.CompareExchange(ref _value, null, null) != null;
+            set => Exchange(value);
+        }
+        public bool Exchange(bool value) => Interlocked.Exchange(ref _value, value ? this : null) != null;
+   
+        public static implicit operator bool(Interlocked_Bool obj) => obj.Value;
+
+        public override string ToString() => Value.ToString();
+    }
+
+
     public class Interlocked_Int32
     {
         private int _value;

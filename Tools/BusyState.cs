@@ -27,7 +27,8 @@ namespace System
             for (; ; Thread.Sleep(sleep))
             {
                 this.Enter(out bool busy);
-                if (busy) return this;
+                if (busy) continue;
+                return this;
             }
         }
 
@@ -36,7 +37,8 @@ namespace System
             for (; ; await Task.Delay(sleep))
             {
                 this.Enter(out bool busy);
-                if (busy) return this;
+                if (busy) continue;
+                return this;
             }
         }
 

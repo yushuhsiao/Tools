@@ -18,6 +18,8 @@
 
         public T CompareExchange(T value, T comparand) => Interlocked.CompareExchange(ref _value, value, comparand);
 
+        public T Exchange(T value) => Interlocked.Exchange(ref _value, value);
+
         public bool TrySet(T value) => CompareExchange(value, null) == null;
 
         public bool GetValue(out T value)

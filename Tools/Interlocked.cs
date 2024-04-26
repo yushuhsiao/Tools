@@ -65,8 +65,8 @@
         }
         public int Exchange(int value) => Interlocked.Exchange(ref _value, value);
         public int CompareExchange(int value, int comparand) => Interlocked.CompareExchange(ref _value, value, comparand);
-        public int Increment => Interlocked.Increment(ref _value);
-        public int Decrement => Interlocked.Decrement(ref _value);
+        public int Increment() => Interlocked.Increment(ref _value);
+        public int Decrement() => Interlocked.Decrement(ref _value);
         public int Add(int value) => Interlocked.Add(ref _value, value);
     }
 

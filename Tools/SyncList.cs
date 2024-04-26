@@ -7,9 +7,9 @@ namespace System.Collections.Generic
     {
         private bool useCache;
         private List<T> list1 = new List<T>();
-        private T[] list2 = new T[0];
+        private readonly Interlocked<T[]> list2 = new Interlocked<T[]>() { Value = Array.Empty<T>() };
 
-        public T[] Cache => Interlocked.CompareExchange(ref list2, null, null);
+        public T[] Cache => list2.Value;
 
         public SyncList(bool useCache = true)
         {
@@ -32,7 +32,7 @@ namespace System.Collections.Generic
             lock (list1)
             {
                 list1.Add(item);
-                if (useCache) Interlocked.Exchange(ref list2, list1.ToArray());
+                if (useCache) list2.Value = list1.ToArray();
             }
             return item;
         }
@@ -74,7 +74,7 @@ namespace System.Collections.Generic
             {
                 while (list1.Remove(item))
                     ret = true;
-                if (useCache) Interlocked.Exchange(ref list2, list1.ToArray());
+                if (useCache) list2.Value = list1.ToArray();
             }
             return ret;
         }
@@ -84,7 +84,7 @@ namespace System.Collections.Generic
             lock (list1)
             {
                 list1.Clear();
-                Interlocked.Exchange(ref list2, list1.ToArray());
+                if (useCache) list2.Value = list1.ToArray();
             }
         }
 
@@ -92,16 +92,15 @@ namespace System.Collections.Generic
 
         public void RunQueue(Func<T, Task> cb)
         {
-            Interlocked.Exchange(ref _runQueue_Func, cb);
+            _runQueue_Func.Value = cb;
             Generic.RunQueue.Add(this.RunQueue);
         }
 
-        private Func<T, Task> _runQueue_Func;
+        private readonly Interlocked<Func<T, Task>> _runQueue_Func = new Interlocked<Func<T, Task>>();
         private readonly BusyState _runQueue_Busy = new BusyState();
-        //private object _runQueue_Busy;
         private async Task RunQueue_Proc()
         {
-            var cb = Interlocked.CompareExchange(ref _runQueue_Func, null, null);
+            var cb = _runQueue_Func.Value;
             if (cb == null) return;
             Console.WriteLine($"RunQueue : {typeof(T).FullName}");
             using (_runQueue_Busy.Enter(out var busy))
@@ -116,11 +115,16 @@ namespace System.Collections.Generic
 
         private bool RunQueue()
         {
-            if (Interlocked.CompareExchange(ref _runQueue_Func, null, null) == null) return false;
-            if (//Interlocked.CompareExchange(ref _runQueue_Busy, null, null) == null &&
-                _runQueue_Busy.IsNotBusy && this.TryGetFirst(out var item, false))
+            if (_runQueue_Func.IsNull) return false;
+            if (_runQueue_Busy.IsNotBusy && this.TryGetFirst(out var item, false))
                 Task.Run(RunQueue_Proc);
             return true;
+        }
+
+        public static event Func<bool> Tick
+        {
+            add { Generic.RunQueue.Add(value); }
+            remove { }
         }
     }
 

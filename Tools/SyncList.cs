@@ -56,7 +56,7 @@ namespace System.Collections.Generic
                         if (remove)
                         {
                             list1.RemoveAt(0);
-                            if (useCache) Interlocked.Exchange(ref list2, list1.ToArray());
+                            if (useCache) list2.Value = list1.ToArray();
                         }
                         return true;
                     }
@@ -97,13 +97,13 @@ namespace System.Collections.Generic
         }
 
         private readonly Interlocked<Func<T, Task>> _runQueue_Func = new Interlocked<Func<T, Task>>();
-        private readonly BusyState _runQueue_Busy = new BusyState();
+        public BusyState Busy { get; } = new BusyState();
         private async Task RunQueue_Proc()
         {
             var cb = _runQueue_Func.Value;
             if (cb == null) return;
             Console.WriteLine($"RunQueue : {typeof(T).FullName}");
-            using (_runQueue_Busy.Enter(out var busy))
+            using (Busy.Enter(out var busy))
             {
                 if (busy) return;
                 int n;
@@ -116,7 +116,7 @@ namespace System.Collections.Generic
         private bool RunQueue()
         {
             if (_runQueue_Func.IsNull) return false;
-            if (_runQueue_Busy.IsNotBusy && this.TryGetFirst(out var item, false))
+            if (Busy.IsNotBusy && this.TryGetFirst(out var item, false))
                 Task.Run(RunQueue_Proc);
             return true;
         }

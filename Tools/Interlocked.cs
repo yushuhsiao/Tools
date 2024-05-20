@@ -65,8 +65,8 @@
         }
         public int Exchange(int value) => Interlocked.Exchange(ref _value, value);
         public int CompareExchange(int value, int comparand) => Interlocked.CompareExchange(ref _value, value, comparand);
-        public int Increment() => Interlocked.Increment(ref _value);
-        public int Decrement() => Interlocked.Decrement(ref _value);
+        public int Increment => Interlocked.Increment(ref _value);
+        public int Decrement => Interlocked.Decrement(ref _value);
         public int Add(int value) => Interlocked.Add(ref _value, value);
     }
 
@@ -120,5 +120,13 @@
         }
         public Double Exchange(Double value) => Interlocked.Exchange(ref _value, value);
         public Double CompareExchange(Double value, long comparand) => Interlocked.CompareExchange(ref _value, value, comparand);
+    }
+
+    public static class InterlockedExtensions
+    {
+        public static int Increment(this Interlocked_Int32 n) => n.Increment;
+        public static int Decrement(this Interlocked_Int32 n) => n.Decrement;
+        public static long Increment(this Interlocked_Int64 n) => n.Increment;
+        public static long Decrement(this Interlocked_Int64 n) => n.Decrement;
     }
 }

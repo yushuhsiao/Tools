@@ -98,18 +98,19 @@ namespace System.Collections.Generic
 
         private readonly Interlocked<Func<T, Task>> _runQueue_Func = new Interlocked<Func<T, Task>>();
         public BusyState Busy { get; } = new BusyState();
+        public static bool ShowDebug = false;
         private async Task RunQueue_Proc()
         {
             var cb = _runQueue_Func.Value;
             if (cb == null) return;
-            Console.WriteLine($"RunQueue : {typeof(T).FullName}");
+            if (ShowDebug) Console.WriteLine($"RunQueue : {typeof(T).FullName}");
             using (Busy.Enter(out var busy))
             {
                 if (busy) return;
                 int n;
                 for (n = 0; this.TryGetFirst(out var item, true); n++)
                     await cb(item);
-                Console.WriteLine($"RunQueue : {typeof(T).FullName}, {n}");
+                if (ShowDebug) Console.WriteLine($"RunQueue : {typeof(T).FullName}, {n}");
             }
         }
 

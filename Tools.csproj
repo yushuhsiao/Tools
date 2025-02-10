@@ -10,7 +10,7 @@
 		<Version>2024.12.25</Version>
 	</PropertyGroup>
 	<Choose>
-		<When Condition=" '$(Configuration)'=='Release' ">
+		<When Condition=" '$(Configuration)'=='Release' AND '$(SolutionName)'=='libs' ">
 			<PropertyGroup>
 				<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 				<PackageOutputPath>..\nupkg</PackageOutputPath>

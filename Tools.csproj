@@ -7,7 +7,7 @@
 		<NoWarn>$(NoWarn);1591;1584;0618</NoWarn>
 		<Authors>Leader</Authors>
 		<Description>Tools</Description>
-		<Version>2025.02.18</Version>
+		<Version>2025.03.18</Version>
 	</PropertyGroup>
 	<Choose>
 		<When Condition=" '$(Configuration)'=='Release' AND '$(SolutionName)'=='libs' ">
@@ -31,7 +31,7 @@
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.3" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-		<PackageReference Include="StackExchange.Redis" Version="2.8.24" />
+		<PackageReference Include="StackExchange.Redis" Version="2.8.31" />
 	</ItemGroup>
 
 </Project>

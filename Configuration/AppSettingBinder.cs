@@ -52,6 +52,23 @@ namespace Microsoft.Extensions.Configuration
             //public abstract bool OnGetValue<TValue>(string section, string key, out TValue value, params object[] index);
         }
 
+        public static string BuildKey(string _section, string _key, int index1, int index2)
+        {
+            string key;
+            if (string.IsNullOrEmpty(_section))
+            {
+                if (index1 == 0 && index2 == 0)
+                    key = _key;
+                else
+                    key = $"{_key}:{index1}:{index2}";
+            }
+            else if (index1 == 0 && index2 == 0)
+                key = $"{_section}:{_key}";
+            else
+                key = $"{_section}:{_key}:{index1}:{index2}";
+            return key;
+        }
+
         private abstract class _Binder
         {
             private class _BinderMember
@@ -134,19 +151,20 @@ namespace Microsoft.Extensions.Configuration
             {
                 string _section = item.src.SectionName;
                 string _key = item.src.Key ?? item.Member.Name;
-                string key;
-                if (string.IsNullOrEmpty(_section))
-                {
-                    if (index1 == 0 && index2 == 0)
-                        key = _key;
-                    else
-                        key = $"{_key}:{index1}:{index2}";
-                }
-                else if (index1 == 0 && index2 == 0)
-                    key = $"{_section}:{_key}";
-                else
-                    key = $"{_section}:{_key}:{index1}:{index2}";
-                return key;
+                return AppSettingBinder.BuildKey(_section, _key, index1, index2);
+                //string key;
+                //if (string.IsNullOrEmpty(_section))
+                //{
+                //    if (index1 == 0 && index2 == 0)
+                //        key = _key;
+                //    else
+                //        key = $"{_key}:{index1}:{index2}";
+                //}
+                //else if (index1 == 0 && index2 == 0)
+                //    key = $"{_section}:{_key}";
+                //else
+                //    key = $"{_section}:{_key}:{index1}:{index2}";
+                //return key;
             }
 
             public TValue GetValue<TValue>(string name, int index1, int index2)

@@ -7,7 +7,7 @@
 		<NoWarn>$(NoWarn);1591;1584;0618</NoWarn>
 		<Authors>Leader</Authors>
 		<Description>Tools</Description>
-		<Version>2025.03.18</Version>
+		<Version>2025.04.01</Version>
 	</PropertyGroup>
 	<Choose>
 		<When Condition=" '$(Configuration)'=='Release' AND '$(SolutionName)'=='libs' ">

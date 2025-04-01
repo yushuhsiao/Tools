@@ -144,5 +144,17 @@ namespace System.Collections.Generic
                         yield return list[i];
             }
         }
+
+        public static T Replace<T>(this IList<T> list, T src, T dst)
+        {
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (object.ReferenceEquals(list[i], src))
+                {
+                    list[i] = dst;
+                }
+            }
+            return dst;
+        }
     }
 }

@@ -20,6 +20,7 @@
 
 	<ItemGroup>
 		<Compile Remove="System.Data\DbConnectionPooling.cs" />
+		<Compile Remove="System.Data\SqlMapperExtensions.Contrib.cs" />
 		<Compile Remove="Tools\StringFormatWith.cs" />
 	</ItemGroup>
 

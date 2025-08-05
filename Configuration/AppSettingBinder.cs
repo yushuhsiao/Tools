@@ -17,7 +17,6 @@ namespace Microsoft.Extensions.Configuration
     {
         public static IServiceCollection AddConfigurationBinder(this IServiceCollection service)
         {
-            //service.AddSingleton(typeof(IConfiguration<>), typeof(_Binder<>));
             service.TryAddSingleton(typeof(IConfiguration<>), typeof(_Binder<>));
             return service;
         }
@@ -43,13 +42,11 @@ namespace Microsoft.Extensions.Configuration
         {
             if (configuration is _Binder binder)
                 binder.SetValue(value, name, index1, index2);
-            //ConfigurationBinder.GetValue(configuration, name, default(TValue));
         }
 
         public abstract class Provider : ConfigurationProvider
         {
             public abstract void OnInit(IServiceProvider service);
-            //public abstract bool OnGetValue<TValue>(string section, string key, out TValue value, params object[] index);
         }
 
         public static string BuildKey(string _section, string _key, int index1, int index2)
@@ -103,7 +100,6 @@ namespace Microsoft.Extensions.Configuration
             protected IServiceProvider _service;
             protected IConfiguration _configuration;
             private _BinderMember[] _members;
-            //private Provider _provider;
 
             public _Binder(IServiceProvider service, IConfiguration configuration)
             {
@@ -114,13 +110,8 @@ namespace Microsoft.Extensions.Configuration
                 if (configuration is IConfigurationRoot configRoot)
                 {
                     foreach (var provider in configRoot.Providers)
-                    {
                         if (provider is Provider _provider)
-                        {
-                            //_provider = obj;
                             _provider.OnInit(service);
-                        }
-                    }
                 }
                 #endregion
 
@@ -152,19 +143,6 @@ namespace Microsoft.Extensions.Configuration
                 string _section = item.src.SectionName;
                 string _key = item.src.Key ?? item.Member.Name;
                 return AppSettingBinder.BuildKey(_section, _key, index1, index2);
-                //string key;
-                //if (string.IsNullOrEmpty(_section))
-                //{
-                //    if (index1 == 0 && index2 == 0)
-                //        key = _key;
-                //    else
-                //        key = $"{_key}:{index1}:{index2}";
-                //}
-                //else if (index1 == 0 && index2 == 0)
-                //    key = $"{_section}:{_key}";
-                //else
-                //    key = $"{_section}:{_key}:{index1}:{index2}";
-                //return key;
             }
 
             public TValue GetValue<TValue>(string name, int index1, int index2)

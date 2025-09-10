@@ -19,6 +19,7 @@
 	</Choose>
 
 	<ItemGroup>
+		<Compile Remove="Configuration\AppSettingProviderAttribute.cs" />
 		<Compile Remove="System.Data\DbConnectionPooling.cs" />
 		<Compile Remove="System.Data\SqlMapperExtensions.Contrib.cs" />
 		<Compile Remove="Tools\StringFormatWith.cs" />

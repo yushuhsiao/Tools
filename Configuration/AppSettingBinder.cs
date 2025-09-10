@@ -44,6 +44,26 @@ namespace Microsoft.Extensions.Configuration
                 binder.SetValue(value, name, index1, index2);
         }
 
+        internal interface ISource : IConfigurationSource
+        {
+            Provider Provider { get; }
+        }
+
+        public abstract class Source<T> : ISource where T : Provider, new()
+        {
+            internal T Provider => new T();
+
+            Provider ISource.Provider => Provider;
+
+            public virtual void OnBuild(T provider) { }
+
+            IConfigurationProvider IConfigurationSource.Build(IConfigurationBuilder builder)
+            {
+                OnBuild(Provider);
+                return Provider;
+            }
+        }
+
         public abstract class Provider : ConfigurationProvider
         {
             public abstract void OnInit(IServiceProvider service);
@@ -73,6 +93,7 @@ namespace Microsoft.Extensions.Configuration
                 public AppSettingAttribute src;
                 public MemberInfo Member;
                 public DefaultValueAttribute DefaultValue;
+                //public AppSettingProviderAttribute[] Providers = Array.Empty<AppSettingProviderAttribute>();
 
                 private Dictionary<Type, object> _defaultValues = new Dictionary<Type, object>();
 
@@ -117,18 +138,33 @@ namespace Microsoft.Extensions.Configuration
 
                 #region find members
 
+                var m1 = this.CallerType.GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
                 var members = new List<_BinderMember>();
-                foreach (MemberInfo m in this.CallerType.GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance))
+                foreach (MemberInfo m in m1)
                 {
-                    var attr = m.GetCustomAttribute<AppSettingAttribute>();
-                    if (attr != null)
+                    var attr1 = m.GetCustomAttribute<AppSettingAttribute>();
+                    //var attr2 = m.GetCustomAttributes<AppSettingProviderAttribute>();
+                    if (attr1 != null)
                     {
-                        members.Add(new _BinderMember()
+                        var binderMember = new _BinderMember()
                         {
-                            src = attr,
+                            src = attr1,
                             Member = m,
                             DefaultValue = m.GetCustomAttribute<DefaultValueAttribute>()
-                        });
+                        };
+                        //List<AppSettingProviderAttribute> providers = null;
+                        //foreach (var attr2_ in attr2)
+                        //{
+                        //    if (attr2_.Type.IsSubclassOf<AppSettingBinder.Provider>())
+                        //    {
+                        //        if (providers == null)
+                        //            providers = new List<AppSettingProviderAttribute>();
+                        //        providers.Add(attr2_);
+                        //    }
+                        //}
+                        //if (providers != null)
+                        //    binderMember.Providers = providers.ToArray();
+                        members.Add(binderMember);
                     }
                 }
                 this._members = members.ToArray();
@@ -174,6 +210,24 @@ namespace Microsoft.Extensions.Configuration
                         _BinderMember item = _members[i];
                         if (item.Member.Name == name)
                         {
+                            //var enableWrite = Guid.Empty;
+
+                            //foreach (var p1 in item.Providers)
+                            //{
+                            //    foreach (var p2a in manager.Sources)
+                            //    {
+                            //        if (p2a is AppSettingBinder.Source p2)
+                            //        {
+                            //            if (p1.Type == p2.Provider.GetType())
+                            //            {
+                            //                if (enableWrite == Guid.Empty)
+                            //                    enableWrite = Guid.NewGuid();
+                            //                ;
+                            //            }
+                            //        }
+                            //    }
+                            //}
+
                             string key = BuildKey(item, index1, index2);
                             if (value == null)
                                 manager[key] = null;

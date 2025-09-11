@@ -44,7 +44,7 @@ namespace Microsoft.Extensions.Configuration
                 binder.SetValue(value, name, index1, index2);
         }
 
-        internal interface ISource : IConfigurationSource
+        private interface ISource : IConfigurationSource
         {
             Provider Provider { get; }
         }

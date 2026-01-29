@@ -1,10 +1,9 @@
 ﻿using Dapper;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
+using System.Data.SqlTypes;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace System.Data
 {
@@ -102,28 +101,39 @@ namespace System.Data
             }
         }
 
-        class _JsonConverter : JsonConverter
+        class _JsonConverter : JsonConverter<SqlTimeStamp>
         {
             public override bool CanConvert(Type objectType)
             {
                 return objectType == typeof(SqlTimeStamp);
             }
 
-            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            public override SqlTimeStamp Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
-                return (SqlTimeStamp)serializer.Deserialize<long>(reader);
+                return reader.GetInt64();
+                //throw new NotImplementedException();
             }
 
-            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+            //public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            //{
+            //    return (SqlTimeStamp)serializer.Deserialize<long>(reader);
+            //}
+
+            public override void Write(Utf8JsonWriter writer, SqlTimeStamp value, JsonSerializerOptions options)
             {
-                if (value is SqlTimeStamp)
-                {
-                    SqlTimeStamp _value = (SqlTimeStamp)value;
-                    serializer.Serialize(writer, (long)_value);
-                }
-                else
-                    serializer.Serialize(writer, value);
+                writer.WriteNumberValue(value);
             }
+
+            //public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+            //{
+            //    if (value is SqlTimeStamp)
+            //    {
+            //        SqlTimeStamp _value = (SqlTimeStamp)value;
+            //        serializer.Serialize(writer, (long)_value);
+            //    }
+            //    else
+            //        serializer.Serialize(writer, value);
+            //}
         }
     }
 }
